@@ -13,7 +13,48 @@ Puffwise is designed to provide a better user experience than existing habit-tra
 - **Basic History**: See puff counts for previous days
 - **Clean UI**: Minimal, distraction-free interface without ads
 
-## Implementation
+## Technical Stack
 
 - **Platform**: iOS
 - **Language**: Swift with SwiftUI
+- **Min iOS Version**: 17.0
+- **Architecture**: SwiftUI App lifecycle
+- **Bundle ID**: com.puffwise.app
+
+## Project Structure
+
+```
+Puffwise/
+├── Puffwise.xcodeproj/     # Xcode project configuration
+└── Puffwise/
+    ├── PuffwiseApp.swift   # App entry point with @main
+    ├── ContentView.swift    # Main UI view
+    ├── Assets.xcassets/     # App icons and colors
+    └── Preview Content/     # SwiftUI preview assets
+```
+
+## Getting Started
+
+### Prerequisites
+
+- Xcode 15.0 or later
+- macOS with iOS 17.0 SDK
+
+### Building the Project
+
+```bash
+# Clone the repository
+git clone https://github.com/jbarkie/puffwise.git
+cd puffwise
+
+# Open in Xcode
+open Puffwise/Puffwise.xcodeproj
+
+# Or build from command line
+cd Puffwise
+xcodebuild -project Puffwise.xcodeproj -scheme Puffwise -destination 'generic/platform=iOS Simulator' build
+```
+
+## Development Status
+
+The Xcode project has been initialized with a basic SwiftUI app structure. Next steps include implementing data models, persistence layer, and the core puff counter UI.

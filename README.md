@@ -8,10 +8,15 @@ Puffwise is designed to provide a better user experience than existing habit-tra
 
 ## MVP Features
 
-- **Puff Counter**: Simple, quick logging of individual puffs
-- **Daily Summary**: View total puff count for the current day
-- **Basic History**: See puff counts for previous days
-- **Clean UI**: Minimal, distraction-free interface without ads
+- **Puff Counter**: Simple, quick logging of individual puffs ✅
+  - Interactive button to log each puff
+  - Real-time count display
+  - Clean, accessible UI with large tap targets
+- **Daily Summary**: View total puff count for the current day (In Progress)
+  - Currently shows session count (resets on app close)
+  - Persistence coming in future update
+- **Basic History**: See puff counts for previous days (Planned)
+- **Clean UI**: Minimal, distraction-free interface without ads ✅
 
 ## Technical Stack
 
@@ -57,4 +62,22 @@ xcodebuild -project Puffwise.xcodeproj -scheme Puffwise -destination 'generic/pl
 
 ## Development Status
 
-The Xcode project has been initialized with a basic SwiftUI app structure. Next steps include implementing data models, persistence layer, and the core puff counter UI.
+### Current Implementation
+
+✅ **Basic Puff Counter UI** (PR #2)
+- Interactive puff logging with button tap
+- Real-time count display
+- SwiftUI @State management for reactive updates
+- Clean, minimal interface with proper spacing
+
+### In Progress
+
+- Data persistence layer (SwiftData or @AppStorage)
+- Date-based tracking for historical data
+
+### Upcoming Features
+
+- Daily summary with persistent storage
+- Historical view of puff counts by day
+- Data visualization and insights
+- MVVM architecture as complexity grows

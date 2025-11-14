@@ -1,10 +1,12 @@
 import SwiftUI
 
 struct ContentView: View {
-    // @State is a property wrapper that tells SwiftUI to watch this variable.
-    // When puffCount changes, SwiftUI automatically re-renders the view to show the new value.
-    // This is SwiftUI's reactive state management - the UI stays in sync with your data.
-    @State private var puffCount: Int = 0
+    // @AppStorage is a property wrapper that persists data to UserDefaults.
+    // Like @State, it tells SwiftUI to watch this variable and re-render when it changes.
+    // Unlike @State, the value survives app restarts - it's saved to disk automatically.
+    // The string "puffCount" is the key used to store/retrieve the value from UserDefaults.
+    // The initial value (0) is used only on the very first app launch.
+    @AppStorage("puffCount") private var puffCount: Int = 0
 
     var body: some View {
         VStack(spacing: 30) {

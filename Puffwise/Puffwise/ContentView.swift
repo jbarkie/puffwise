@@ -1,12 +1,63 @@
 import SwiftUI
 
 struct ContentView: View {
-    // @AppStorage is a property wrapper that persists data to UserDefaults.
-    // Like @State, it tells SwiftUI to watch this variable and re-render when it changes.
-    // Unlike @State, the value survives app restarts - it's saved to disk automatically.
-    // The string "puffCount" is the key used to store/retrieve the value from UserDefaults.
-    // The initial value (0) is used only on the very first app launch.
-    @AppStorage("puffCount") private var puffCount: Int = 0
+    // @State holds the array of puffs in memory during runtime.
+    // Unlike @AppStorage, @State doesn't automatically persist to disk.
+    // We'll manually save/load from UserDefaults using JSON encoding/decoding.
+    @State private var puffs: [Puff] = []
+
+    // Key used to store/retrieve puffs from UserDefaults
+    private let puffsKey = "puffs"
+
+    // Computed property that filters puffs to only include today's entries.
+    // This recalculates automatically whenever 'puffs' changes.
+    private var todaysPuffs: [Puff] {
+        // Calendar.current gives us the user's calendar (handles timezones, locales, etc.)
+        let calendar = Calendar.current
+        // Get the current date
+        let now = Date()
+
+        // Filter the puffs array to only include items from today
+        return puffs.filter { puff in
+            // isDate(_:inSameDayAs:) compares two dates to see if they're on the same day
+            // This handles edge cases like midnight crossings correctly
+            calendar.isDate(puff.timestamp, inSameDayAs: now)
+        }
+    }
+
+    // Load puffs from UserDefaults
+    // This function reads the stored JSON data and decodes it back into an array of Puff objects.
+    private func loadPuffs() {
+        // Get the Data object stored under our key
+        guard let data = UserDefaults.standard.data(forKey: puffsKey) else {
+            // If there's no data (first app launch), keep the empty array
+            return
+        }
+
+        // Try to decode the JSON data into an array of Puff objects
+        do {
+            let decoded = try JSONDecoder().decode([Puff].self, from: data)
+            puffs = decoded
+        } catch {
+            // If decoding fails (corrupted data, format change, etc.), log the error
+            // and keep the empty array
+            print("Failed to load puffs: \(error)")
+        }
+    }
+
+    // Save puffs to UserDefaults
+    // This function encodes the puffs array to JSON and stores it to disk.
+    private func savePuffs() {
+        do {
+            // Encode the puffs array to JSON Data
+            let data = try JSONEncoder().encode(puffs)
+            // Save the data to UserDefaults under our key
+            UserDefaults.standard.set(data, forKey: puffsKey)
+        } catch {
+            // If encoding fails (should be rare), log the error
+            print("Failed to save puffs: \(error)")
+        }
+    }
 
     var body: some View {
         VStack(spacing: 30) {
@@ -28,17 +79,22 @@ struct ContentView: View {
                     .font(.headline)
                     .foregroundStyle(.secondary)
 
-                // Display the current count - updates automatically when puffCount changes
-                Text("\(puffCount)")
+                // Display today's count using the filtered array.
+                // Because todaysPuffs is a computed property, this updates automatically
+                // whenever a new puff is added or when the day changes.
+                Text("\(todaysPuffs.count)")
                     .font(.system(size: 72, weight: .bold))
                     .foregroundStyle(.primary)
             }
 
             // Main action button
             Button(action: {
-                // When tapped, increment the puffCount by 1
-                // SwiftUI detects the @State change and updates the UI automatically
-                puffCount += 1
+                // Create a new Puff with the current timestamp and append it to the array.
+                // The Puff initializer defaults to Date() (current time) and a new UUID.
+                puffs.append(Puff())
+                // Manually save to UserDefaults after modifying the array
+                // SwiftUI detects the @State change and re-renders the UI automatically
+                savePuffs()
             }) {
                 // Button content - label and icon
                 Label("Log Puff", systemImage: "plus.circle.fill")
@@ -54,6 +110,11 @@ struct ContentView: View {
             Spacer()
         }
         .padding()
+        // .onAppear is called when the view first appears on screen
+        // We use it to load our saved puffs from UserDefaults
+        .onAppear {
+            loadPuffs()
+        }
     }
 }
 

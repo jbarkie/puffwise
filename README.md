@@ -10,12 +10,13 @@ Puffwise is designed to provide a better user experience than existing habit-tra
 
 - **Puff Counter**: Simple, quick logging of individual puffs ✅
   - Interactive button to log each puff
-  - Real-time count display
+  - Real-time count display with timestamp tracking
   - Clean, accessible UI with large tap targets
 - **Daily Summary**: View total puff count for the current day ✅
-  - Persistent storage using @AppStorage
-  - Count survives app restarts
-  - Automatic sync with UserDefaults
+  - Each puff logged with timestamp
+  - Persistent storage using UserDefaults with JSON encoding
+  - Smart date filtering to show only today's puffs
+  - Data survives app restarts
 - **Basic History**: See puff counts for previous days (Planned)
 - **Clean UI**: Minimal, distraction-free interface without ads ✅
 
@@ -35,6 +36,7 @@ Puffwise/
 └── Puffwise/
     ├── PuffwiseApp.swift   # App entry point with @main
     ├── ContentView.swift    # Main UI view
+    ├── Puff.swift           # Data model for puff tracking
     ├── Assets.xcassets/     # App icons and colors
     └── Preview Content/     # SwiftUI preview assets
 ```
@@ -77,13 +79,15 @@ xcodebuild -project Puffwise.xcodeproj -scheme Puffwise -destination 'generic/pl
 - Automatic synchronization with UserDefaults
 - Seamless upgrade from @State with minimal code changes
 
-### In Progress
-
-- Date-based tracking for historical data
+✅ **Date-Based Puff Tracking** (PR #4)
+- Puff data model with UUID and timestamp
+- JSON encoding/decoding for storing array of Puffs
+- Calendar-based date filtering for "Today's Puffs"
+- Foundation for historical tracking and analytics
+- Proper data structure for future features
 
 ### Upcoming Features
 
 - Historical view of puff counts by day
-- Date-based puff tracking with timestamps
 - Data visualization and insights
 - MVVM architecture as complexity grows

@@ -17,7 +17,7 @@ Puffwise is designed to provide a better user experience than existing habit-tra
   - Persistent storage using UserDefaults with JSON encoding
   - Smart date filtering to show only today's puffs
   - Data survives app restarts
-- **Basic History**: See puff counts for previous days (Planned)
+- **Basic History**: See puff counts for previous days (In Progress)
 - **Clean UI**: Minimal, distraction-free interface without ads ✅
 
 ## Technical Stack
@@ -35,7 +35,8 @@ Puffwise/
 ├── Puffwise.xcodeproj/     # Xcode project configuration
 └── Puffwise/
     ├── PuffwiseApp.swift   # App entry point with @main
-    ├── ContentView.swift    # Main UI view
+    ├── ContentView.swift    # Main UI view with NavigationStack
+    ├── HistoryView.swift    # Historical puff tracking view
     ├── Puff.swift           # Data model for puff tracking
     ├── Assets.xcassets/     # App icons and colors
     └── Preview Content/     # SwiftUI preview assets
@@ -85,6 +86,13 @@ xcodebuild -project Puffwise.xcodeproj -scheme Puffwise -destination 'generic/pl
 - Calendar-based date filtering for "Today's Puffs"
 - Foundation for historical tracking and analytics
 - Proper data structure for future features
+
+🚧 **Navigation Structure for History View** (PR #5 - In Progress)
+- NavigationStack implementation for modern SwiftUI navigation
+- NavigationLink in toolbar for accessing history
+- HistoryView placeholder with proper navigation hierarchy
+- Foundation for displaying historical puff data
+- Educational comments explaining SwiftUI navigation patterns
 
 ### Upcoming Features
 

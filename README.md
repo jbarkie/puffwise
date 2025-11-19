@@ -38,6 +38,7 @@ Puffwise/
     ├── ContentView.swift    # Main UI view with NavigationStack
     ├── HistoryView.swift    # Historical puff tracking view
     ├── Puff.swift           # Data model for puff tracking
+    ├── PuffGrouping.swift   # Data grouping utilities (day/week/month)
     ├── Assets.xcassets/     # App icons and colors
     └── Preview Content/     # SwiftUI preview assets
 ```
@@ -87,15 +88,29 @@ xcodebuild -project Puffwise.xcodeproj -scheme Puffwise -destination 'generic/pl
 - Foundation for historical tracking and analytics
 - Proper data structure for future features
 
-🚧 **Navigation Structure for History View** (PR #5 - In Progress)
+✅ **Navigation Structure for History View** (PR #5)
 - NavigationStack implementation for modern SwiftUI navigation
 - NavigationLink in toolbar for accessing history
 - HistoryView placeholder with proper navigation hierarchy
 - Foundation for displaying historical puff data
 - Educational comments explaining SwiftUI navigation patterns
 
+🚧 **Data Grouping Logic** (PR #6 - In Progress)
+- PuffGrouping utilities for organizing puffs by time periods
+- Support for grouping by day, week, and month
+- PuffGroup struct with computed properties (count, isToday)
+- Array extensions for fluent API: `puffs.groupedByDay()`
+- Efficient O(n) grouping algorithm using Dictionary
+- DateFormatter extensions for displaying group labels
+- Comprehensive educational comments on Swift features:
+  - Extension methods and protocol constraints
+  - Dictionary-based grouping algorithms
+  - Calendar component manipulation
+  - Date normalization techniques
+  - Static property optimization patterns
+
 ### Upcoming Features
 
-- Historical view of puff counts by day
-- Data visualization and insights
+- Historical list view displaying grouped puff data
+- Data visualization and insights with charts
 - MVVM architecture as complexity grows

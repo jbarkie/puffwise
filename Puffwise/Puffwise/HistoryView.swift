@@ -24,15 +24,11 @@ struct HistoryView: View {
     @Binding var puffs: [Puff]
 
     var body: some View {
-        // Group puffs by day using the extension from PuffGrouping.swift
-        // This returns an array of PuffGroup objects, sorted newest first
-        let groupedPuffs = puffs.groupedByDay()
-
         // List creates a scrollable list view
         List {
             // ForEach iterates over the grouped puffs
             // PuffGroup conforms to Identifiable, so ForEach can use its id automatically
-            ForEach(groupedPuffs) { group in
+            ForEach(puffs.groupedByDay()) { group in
                 // HStack arranges views horizontally
                 HStack {
                     // Display the formatted date on the left

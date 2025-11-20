@@ -124,7 +124,8 @@ struct ContentView: View {
                     // NavigationLink creates a button that navigates to another view
                     // The destination parameter specifies which view to show
                     // This is declarative navigation - we describe where to go, not how
-                    NavigationLink(destination: HistoryView()) {
+                    // The $ prefix creates a binding from @State, allowing HistoryView to access the data
+                    NavigationLink(destination: HistoryView(puffs: $puffs)) {
                         // SF Symbols provide thousands of icons
                         // "chart.bar" is perfect for representing historical data
                         Label("History", systemImage: "chart.bar")

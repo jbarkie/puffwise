@@ -17,7 +17,10 @@ Puffwise is designed to provide a better user experience than existing habit-tra
   - Persistent storage using UserDefaults with JSON encoding
   - Smart date filtering to show only today's puffs
   - Data survives app restarts
-- **Basic History**: See puff counts for previous days (In Progress)
+- **Basic History**: See puff counts for previous days ✅
+  - List view displaying puff counts grouped by day
+  - Formatted date labels for each day
+  - Clean layout with date on left, count on right
 - **Clean UI**: Minimal, distraction-free interface without ads ✅
 
 ## Technical Stack
@@ -95,7 +98,7 @@ xcodebuild -project Puffwise.xcodeproj -scheme Puffwise -destination 'generic/pl
 - Foundation for displaying historical puff data
 - Educational comments explaining SwiftUI navigation patterns
 
-🚧 **Data Grouping Logic** (PR #6 - In Progress)
+✅ **Data Grouping Logic** (PR #6)
 - PuffGrouping utilities for organizing puffs by time periods
 - Support for grouping by day, week, and month
 - PuffGroup struct with computed properties (count, isToday)
@@ -109,8 +112,19 @@ xcodebuild -project Puffwise.xcodeproj -scheme Puffwise -destination 'generic/pl
   - Date normalization techniques
   - Static property optimization patterns
 
+✅ **Historical List View** (PR #7)
+- HistoryView implementation with daily puff count display
+- SwiftUI List displaying grouped puff data
+- @Binding property wrapper for data flow from ContentView
+- Each row shows formatted date and total count
+- Simple, reviewable implementation ready for enhancement
+- Educational comments on:
+  - @Binding for two-way data connections
+  - List and ForEach for displaying collections
+  - HStack layout and Spacer usage
+  - Preview wrapper pattern for stateful previews
+
 ### Upcoming Features
 
-- Historical list view displaying grouped puff data
 - Data visualization and insights with charts
 - MVVM architecture as complexity grows

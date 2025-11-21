@@ -117,6 +117,9 @@ struct ContentView: View {
             // .navigationTitle sets the title in the navigation bar
             // This is a required part of the NavigationStack pattern
             .navigationTitle("Today")
+            // .navigationBarTitleDisplayMode(.inline) makes the title appear on the same
+            // horizontal line as toolbar items, instead of the large centered display
+            .navigationBarTitleDisplayMode(.inline)
             // .toolbar lets us add items to the navigation bar
             // Common placements: .topBarTrailing (top-right), .topBarLeading (top-left), .bottomBar
             .toolbar {

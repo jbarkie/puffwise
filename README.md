@@ -138,6 +138,12 @@ xcodebuild -project Puffwise.xcodeproj -scheme Puffwise -destination 'generic/pl
   - Dynamic formatter selection with helper methods
   - State management for view-local data
 
+✅ **Header Alignment** (PR #9)
+- Inline navigation title display mode for better UI alignment
+- "Today" title and History button now appear on same horizontal line
+- Standard iOS navigation bar pattern (title left, actions right)
+- Cleaner, more compact navigation bar layout
+
 ### Upcoming Features
 
 - Data visualization and insights with charts

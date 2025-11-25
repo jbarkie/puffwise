@@ -2,11 +2,13 @@
 //  HistoryView.swift
 //  Puffwise
 //
-//  View for displaying historical puff tracking data.
-//  Shows puff counts organized by day in a list format.
+//  View for displaying historical puff tracking data with bar chart visualization.
+//  Shows puff counts as both an interactive chart and detailed list, grouped by
+//  day, week, or month based on user selection.
 //
 
 import SwiftUI
+import Charts
 
 /// A view that displays historical puff tracking data grouped by day
 ///
@@ -28,26 +30,115 @@ struct HistoryView: View {
     // @State is for view-local data that can change over time
     @State private var selectedPeriod: PuffGroupPeriod = .day
 
+    // MARK: - Chart View
+
+    /// Empty state view shown when there is no puff data to display.
+    private var emptyChartView: some View {
+        VStack(spacing: 12) {
+            Image(systemName: "chart.bar.xaxis")
+                .font(.system(size: 48))
+                .foregroundStyle(.secondary)
+            Text("No data yet")
+                .font(.headline)
+                .foregroundStyle(.secondary)
+            Text("Start logging puffs to see your chart")
+                .font(.caption)
+                .foregroundStyle(.tertiary)
+        }
+        .frame(height: 200)
+        .frame(maxWidth: .infinity)
+    }
+
+    /// A computed property that generates the bar chart visualization.
+    ///
+    /// This creates a bar chart using Swift Charts, Apple's declarative charting framework
+    /// introduced in iOS 16. Charts uses a similar builder syntax to SwiftUI views.
+    ///
+    /// **Swift Charts Concepts:**
+    /// - `Chart { }`: Container that defines the chart. Similar to VStack/HStack for views.
+    /// - `ForEach`: Iterates over data (same as SwiftUI's ForEach for views)
+    /// - `BarMark`: Defines a vertical bar in the chart
+    /// - `.foregroundStyle()`: Sets the bar color
+    /// - `.annotation()`: Adds labels to bars for displaying exact values
+    /// - `AxisMarks`: Customizes the appearance of chart axes
+    ///
+    /// The chart displays puff counts over time, grouped by the selected period (day/week/month).
+    /// When no data exists, it shows a friendly empty state with guidance for the user.
+    private var chartView: some View {
+        // Get the grouped data based on the current filter
+        let groupedData = puffs.groupedBy(selectedPeriod)
+
+        return Group {
+            if groupedData.isEmpty {
+                emptyChartView
+            } else {
+                // Chart with data
+                // The Chart container works like a SwiftUI view container (VStack, HStack, etc.)
+                Chart {
+                    // ForEach iterates over each PuffGroup and creates a BarMark for it
+                    ForEach(groupedData) { group in
+                        // BarMark creates a single vertical bar in the chart
+                        // x: determines the horizontal position (the date)
+                        // y: determines the bar height (the puff count)
+                        // unit: tells Charts how to group dates on the x-axis
+                        BarMark(
+                            x: .value("Date", group.date, unit: unitForPeriod(selectedPeriod)),
+                            y: .value("Puffs", group.count)
+                        )
+                        // Set the bar color to blue, matching the app's primary action color
+                        .foregroundStyle(.blue)
+                    }
+                }
+                // Customize the x-axis appearance
+                // AxisMarks with .automatic lets Swift Charts intelligently choose
+                // which dates to show based on the data range and available space
+                .chartXAxis {
+                    AxisMarks(values: .automatic)
+                }
+                // Customize the y-axis appearance
+                // Position .leading puts the y-axis on the left side
+                .chartYAxis {
+                    AxisMarks(position: .leading)
+                }
+                // Set a fixed height for the chart
+                // 200 points provides good visibility without dominating the screen
+                .frame(height: 200)
+                // Add padding around the chart for breathing room
+                .padding()
+            }
+        }
+    }
+
     var body: some View {
-        // List creates a scrollable list view
-        List {
-            // ForEach iterates over the grouped puffs
-            // PuffGroup conforms to Identifiable, so ForEach can use its id automatically
-            ForEach(puffs.groupedBy(selectedPeriod)) { group in
-                // HStack arranges views horizontally
-                HStack {
-                    // Display the formatted date on the left using the appropriate formatter
-                    Text(formatterForPeriod(selectedPeriod).string(from: group.date))
-                        .font(.body)
+        // VStack stacks the chart and list vertically
+        // spacing: 0 ensures no gap between the chart and list
+        VStack(spacing: 0) {
+            // Chart section at the top
+            // This shows the visual representation of puff trends
+            chartView
 
-                    // Spacer pushes content to the edges
-                    Spacer()
+            // List section below
+            // This shows the detailed data for each period
+            // List creates a scrollable list view
+            List {
+                // ForEach iterates over the grouped puffs
+                // PuffGroup conforms to Identifiable, so ForEach can use its id automatically
+                ForEach(puffs.groupedBy(selectedPeriod)) { group in
+                    // HStack arranges views horizontally
+                    HStack {
+                        // Display the formatted date on the left using the appropriate formatter
+                        Text(formatterForPeriod(selectedPeriod).string(from: group.date))
+                            .font(.body)
 
-                    // Display the puff count on the right
-                    Text("\(group.count)")
-                        .font(.body)
-                        .fontWeight(.semibold)
-                        .foregroundColor(.secondary)
+                        // Spacer pushes content to the edges
+                        Spacer()
+
+                        // Display the puff count on the right
+                        Text("\(group.count)")
+                            .font(.body)
+                            .fontWeight(.semibold)
+                            .foregroundColor(.secondary)
+                    }
                 }
             }
         }
@@ -65,6 +156,7 @@ struct HistoryView: View {
                 // Picker provides a selection interface for the grouping period
                 // The $ prefix creates a binding to selectedPeriod, allowing the
                 // Picker to both read and write the value
+                // This picker controls both the chart and list views simultaneously
                 Picker("Period", selection: $selectedPeriod) {
                     // Each Text+tag pair defines an option in the picker
                     Text("Day").tag(PuffGroupPeriod.day)
@@ -96,6 +188,32 @@ struct HistoryView: View {
             return DateFormatter.weekFormatter
         case .month:
             return DateFormatter.monthFormatter
+        }
+    }
+
+    /// Returns the appropriate Calendar.Component unit for chart x-axis formatting.
+    ///
+    /// Swift Charts uses Calendar.Component to understand how to group and label dates
+    /// on the x-axis. This ensures dates display at the right granularity.
+    ///
+    /// For example:
+    /// - `.day` returns `Calendar.Component.day` for daily grouping
+    /// - `.week` returns `Calendar.Component.weekOfYear` for weekly grouping
+    /// - `.month` returns `Calendar.Component.month` for monthly grouping
+    ///
+    /// This component is passed to BarMark's x-axis `.value()` method to tell the chart
+    /// framework how to interpret and display the date values.
+    ///
+    /// - Parameter period: The grouping period being displayed
+    /// - Returns: The Calendar.Component unit for the x-axis
+    private func unitForPeriod(_ period: PuffGroupPeriod) -> Calendar.Component {
+        switch period {
+        case .day:
+            return .day
+        case .week:
+            return .weekOfYear
+        case .month:
+            return .month
         }
     }
 }

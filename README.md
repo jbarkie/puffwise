@@ -38,14 +38,16 @@ Puffwise is designed to provide a better user experience than existing habit-tra
 ```
 Puffwise/
 ├── Puffwise.xcodeproj/     # Xcode project configuration
-└── Puffwise/
-    ├── PuffwiseApp.swift   # App entry point with @main
-    ├── ContentView.swift    # Main UI view with NavigationStack
-    ├── HistoryView.swift    # Historical puff tracking view
-    ├── Puff.swift           # Data model for puff tracking
-    ├── PuffGrouping.swift   # Data grouping utilities (day/week/month)
-    ├── Assets.xcassets/     # App icons and colors
-    └── Preview Content/     # SwiftUI preview assets
+├── Puffwise/
+│   ├── PuffwiseApp.swift   # App entry point with @main
+│   ├── ContentView.swift    # Main UI view with NavigationStack
+│   ├── HistoryView.swift    # Historical puff tracking view
+│   ├── Puff.swift           # Data model for puff tracking
+│   ├── PuffGrouping.swift   # Data grouping utilities (day/week/month)
+│   ├── Assets.xcassets/     # App icons and colors
+│   └── Preview Content/     # SwiftUI preview assets
+└── PuffwiseTests/
+    └── PuffwiseTests.swift  # Test suite for PuffGrouping logic
 ```
 
 ## Getting Started
@@ -69,6 +71,28 @@ open Puffwise/Puffwise.xcodeproj
 cd Puffwise
 xcodebuild -project Puffwise.xcodeproj -scheme Puffwise -destination 'generic/platform=iOS Simulator' build
 ```
+
+### Running Tests
+
+Puffwise includes a test suite built with Swift Testing framework to ensure code quality and correctness.
+
+```bash
+# Run all tests
+cd Puffwise
+xcodebuild test -project Puffwise.xcodeproj -scheme Puffwise -destination 'platform=iOS Simulator,name=iPhone 16'
+
+# Or run tests in Xcode
+# Press Cmd+U or Product → Test
+```
+
+**Current Test Coverage:**
+- **PuffGrouping Tests**: Comprehensive tests for date grouping logic
+  - Daily grouping with same-day and different-day scenarios
+  - Weekly grouping across week boundaries
+  - Monthly grouping across month boundaries
+  - Empty array edge cases
+
+The tests use the Swift Testing framework (introduced in Swift 5.9), which provides better error messages and more Swift-native syntax than traditional XCTest.
 
 ## Development Status
 

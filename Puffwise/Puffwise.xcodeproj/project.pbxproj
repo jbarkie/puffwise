@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 56;
+	objectVersion = 70;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -16,10 +16,21 @@
 		AA0000000000000000000004 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = BB0000000000000000000005 /* Preview Assets.xcassets */; };
 /* End PBXBuildFile section */
 
+/* Begin PBXContainerItemProxy section */
+		4E4B35202EDE9375001F15A6 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = GG0000000000000000000001 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = FF0000000000000000000001;
+			remoteInfo = Puffwise;
+		};
+/* End PBXContainerItemProxy section */
+
 /* Begin PBXFileReference section */
 		4E00FF242EC82F4500387ED5 /* Puff.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Puff.swift; sourceTree = "<group>"; };
 		4E00FF272EC82F4500387ED6 /* HistoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryView.swift; sourceTree = "<group>"; };
 		4E00FF292EC82F4500387ED7 /* PuffGrouping.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PuffGrouping.swift; sourceTree = "<group>"; };
+		4E4B351C2EDE9375001F15A6 /* PuffwiseTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = PuffwiseTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		BB0000000000000000000001 /* PuffwiseApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PuffwiseApp.swift; sourceTree = "<group>"; };
 		BB0000000000000000000002 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		BB0000000000000000000003 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -27,7 +38,18 @@
 		CC0000000000000000000001 /* Puffwise.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Puffwise.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		4E4B351D2EDE9375001F15A6 /* PuffwiseTests */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = PuffwiseTests; sourceTree = "<group>"; };
+/* End PBXFileSystemSynchronizedRootGroup section */
+
 /* Begin PBXFrameworksBuildPhase section */
+		4E4B35192EDE9375001F15A6 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		DD0000000000000000000001 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -50,6 +72,7 @@
 			isa = PBXGroup;
 			children = (
 				EE0000000000000000000002 /* Puffwise */,
+				4E4B351D2EDE9375001F15A6 /* PuffwiseTests */,
 				EE0000000000000000000003 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -72,6 +95,7 @@
 			isa = PBXGroup;
 			children = (
 				CC0000000000000000000001 /* Puffwise.app */,
+				4E4B351C2EDE9375001F15A6 /* PuffwiseTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -79,6 +103,29 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		4E4B351B2EDE9375001F15A6 /* PuffwiseTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 4E4B35242EDE9375001F15A6 /* Build configuration list for PBXNativeTarget "PuffwiseTests" */;
+			buildPhases = (
+				4E4B35182EDE9375001F15A6 /* Sources */,
+				4E4B35192EDE9375001F15A6 /* Frameworks */,
+				4E4B351A2EDE9375001F15A6 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				4E4B35212EDE9375001F15A6 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				4E4B351D2EDE9375001F15A6 /* PuffwiseTests */,
+			);
+			name = PuffwiseTests;
+			packageProductDependencies = (
+			);
+			productName = PuffwiseTests;
+			productReference = 4E4B351C2EDE9375001F15A6 /* PuffwiseTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 		FF0000000000000000000001 /* Puffwise */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = FF0000000000000000000002 /* Build configuration list for PBXNativeTarget "Puffwise" */;
@@ -103,9 +150,13 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
-				LastSwiftUpdateCheck = 1540;
+				LastSwiftUpdateCheck = 1640;
 				LastUpgradeCheck = 1540;
 				TargetAttributes = {
+					4E4B351B2EDE9375001F15A6 = {
+						CreatedOnToolsVersion = 16.4;
+						TestTargetID = FF0000000000000000000001;
+					};
 					FF0000000000000000000001 = {
 						CreatedOnToolsVersion = 15.4;
 					};
@@ -125,11 +176,19 @@
 			projectRoot = "";
 			targets = (
 				FF0000000000000000000001 /* Puffwise */,
+				4E4B351B2EDE9375001F15A6 /* PuffwiseTests */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		4E4B351A2EDE9375001F15A6 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		DD0000000000000000000003 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -142,6 +201,13 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		4E4B35182EDE9375001F15A6 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		DD0000000000000000000002 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -156,7 +222,51 @@
 		};
 /* End PBXSourcesBuildPhase section */
 
+/* Begin PBXTargetDependency section */
+		4E4B35212EDE9375001F15A6 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = FF0000000000000000000001 /* Puffwise */;
+			targetProxy = 4E4B35202EDE9375001F15A6 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
 /* Begin XCBuildConfiguration section */
+		4E4B35222EDE9375001F15A6 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.5;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = Puffwise.PuffwiseTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Puffwise.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Puffwise";
+			};
+			name = Debug;
+		};
+		4E4B35232EDE9375001F15A6 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.5;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = Puffwise.PuffwiseTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Puffwise.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Puffwise";
+			};
+			name = Release;
+		};
 		HH0000000000000000000001 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -337,6 +447,15 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		4E4B35242EDE9375001F15A6 /* Build configuration list for PBXNativeTarget "PuffwiseTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				4E4B35222EDE9375001F15A6 /* Debug */,
+				4E4B35232EDE9375001F15A6 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		FF0000000000000000000002 /* Build configuration list for PBXNativeTarget "Puffwise" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (

@@ -90,6 +90,7 @@ xcodebuild test -project Puffwise.xcodeproj -scheme Puffwise -destination 'platf
 The test suite uses Swift Testing framework (Swift 5.9+) with comprehensive coverage across the app's core functionality:
 
 - **PuffGrouping Tests** (8 tests): Date grouping and sorting logic
+
   - Daily, weekly, and monthly grouping algorithms
   - Empty array and single puff edge cases
   - Year boundary transitions
@@ -97,12 +98,14 @@ The test suite uses Swift Testing framework (Swift 5.9+) with comprehensive cove
   - Newest-first sorting verification
 
 - **Puff Model Tests** (6 tests): Core data model validation
+
   - Default and custom initialization
   - UUID uniqueness and stability
   - Codable conformance (JSON encoding/decoding)
   - Array encoding/decoding for persistence
 
 - **PuffGroup Model Tests** (4 tests): Grouping data structure
+
   - Count property accuracy
   - isToday property behavior
   - Identifiable conformance and ID stability
@@ -114,82 +117,3 @@ The test suite uses Swift Testing framework (Swift 5.9+) with comprehensive cove
 **Total: 22 tests, all passing**
 
 The tests use Swift Testing framework (introduced in Swift 5.9), which provides better error messages, native async/await support, and more Swift-native syntax than traditional XCTest.
-
-## Development Status
-
-### Current Implementation
-
-✅ **Basic Puff Counter UI** (PR #2)
-- Interactive puff logging with button tap
-- Real-time count display
-- SwiftUI @State management for reactive updates
-- Clean, minimal interface with proper spacing
-
-✅ **Data Persistence** (PR #3)
-- @AppStorage property wrapper for persistent storage
-- Puff counts survive app restarts
-- Automatic synchronization with UserDefaults
-- Seamless upgrade from @State with minimal code changes
-
-✅ **Date-Based Puff Tracking** (PR #4)
-- Puff data model with UUID and timestamp
-- JSON encoding/decoding for storing array of Puffs
-- Calendar-based date filtering for "Today's Puffs"
-- Foundation for historical tracking and analytics
-- Proper data structure for future features
-
-✅ **Navigation Structure for History View** (PR #5)
-- NavigationStack implementation for modern SwiftUI navigation
-- NavigationLink in toolbar for accessing history
-- HistoryView placeholder with proper navigation hierarchy
-- Foundation for displaying historical puff data
-- Educational comments explaining SwiftUI navigation patterns
-
-✅ **Data Grouping Logic** (PR #6)
-- PuffGrouping utilities for organizing puffs by time periods
-- Support for grouping by day, week, and month
-- PuffGroup struct with computed properties (count, isToday)
-- Array extensions for fluent API: `puffs.groupedByDay()`
-- Efficient O(n) grouping algorithm using Dictionary
-- DateFormatter extensions for displaying group labels
-- Comprehensive educational comments on Swift features:
-  - Extension methods and protocol constraints
-  - Dictionary-based grouping algorithms
-  - Calendar component manipulation
-  - Date normalization techniques
-  - Static property optimization patterns
-
-✅ **Historical List View** (PR #7)
-- HistoryView implementation with daily puff count display
-- SwiftUI List displaying grouped puff data
-- @Binding property wrapper for data flow from ContentView
-- Each row shows formatted date and total count
-- Simple, reviewable implementation ready for enhancement
-- Educational comments on:
-  - @Binding for two-way data connections
-  - List and ForEach for displaying collections
-  - HStack layout and Spacer usage
-  - Preview wrapper pattern for stateful previews
-
-✅ **History Filtering** (PR #8)
-- Dynamic filtering by day, week, or month using existing grouping logic
-- Segmented control in toolbar for filter selection
-- @State property wrapper for managing selected period
-- Dynamic date formatting based on selected grouping period
-- Utilizes PuffGrouping.swift infrastructure from PR #6
-- Educational comments on:
-  - SwiftUI Picker with segmented style
-  - Toolbar modifiers with .principal placement
-  - Dynamic formatter selection with helper methods
-  - State management for view-local data
-
-✅ **Header Alignment** (PR #9)
-- Inline navigation title display mode for better UI alignment
-- "Today" title and History button now appear on same horizontal line
-- Standard iOS navigation bar pattern (title left, actions right)
-- Cleaner, more compact navigation bar layout
-
-### Upcoming Features
-
-- Data visualization and insights with charts
-- MVVM architecture as complexity grows

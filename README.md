@@ -47,7 +47,7 @@ Puffwise/
 │   ├── Assets.xcassets/     # App icons and colors
 │   └── Preview Content/     # SwiftUI preview assets
 └── PuffwiseTests/
-    └── PuffwiseTests.swift  # Test suite for PuffGrouping logic
+    └── PuffwiseTests.swift  # Comprehensive test suite (22 tests)
 ```
 
 ## Getting Started
@@ -86,13 +86,34 @@ xcodebuild test -project Puffwise.xcodeproj -scheme Puffwise -destination 'platf
 ```
 
 **Current Test Coverage:**
-- **PuffGrouping Tests**: Comprehensive tests for date grouping logic
-  - Daily grouping with same-day and different-day scenarios
-  - Weekly grouping across week boundaries
-  - Monthly grouping across month boundaries
-  - Empty array edge cases
 
-The tests use the Swift Testing framework (introduced in Swift 5.9), which provides better error messages and more Swift-native syntax than traditional XCTest.
+The test suite uses Swift Testing framework (Swift 5.9+) with comprehensive coverage across the app's core functionality:
+
+- **PuffGrouping Tests** (8 tests): Date grouping and sorting logic
+  - Daily, weekly, and monthly grouping algorithms
+  - Empty array and single puff edge cases
+  - Year boundary transitions
+  - Multiple puffs with same timestamp handling
+  - Newest-first sorting verification
+
+- **Puff Model Tests** (6 tests): Core data model validation
+  - Default and custom initialization
+  - UUID uniqueness and stability
+  - Codable conformance (JSON encoding/decoding)
+  - Array encoding/decoding for persistence
+
+- **PuffGroup Model Tests** (4 tests): Grouping data structure
+  - Count property accuracy
+  - isToday property behavior
+  - Identifiable conformance and ID stability
+
+- **DateFormatter Tests** (4 tests): Formatter extensions
+  - Day, week, and month formatting
+  - Static formatter reusability and performance
+
+**Total: 22 tests, all passing**
+
+The tests use Swift Testing framework (introduced in Swift 5.9), which provides better error messages, native async/await support, and more Swift-native syntax than traditional XCTest.
 
 ## Development Status
 

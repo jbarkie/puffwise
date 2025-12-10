@@ -23,6 +23,11 @@ Puffwise is designed to provide a better user experience than existing habit-tra
   - Formatted date labels for each period (e.g., "Jan 15, 2024" or "Week of Jan 15")
   - Clean layout with date on left, count on right
   - Filter defaults to day view on each app launch
+- **Goal Setting**: Track progress toward daily reduction targets ✅
+  - Set custom daily puff goal (1-100 puffs)
+  - Persistent storage using @AppStorage
+  - Settings accessible via toolbar gear icon
+  - Progress display showing "X of Y puffs"
 - **Clean UI**: Minimal, distraction-free interface without ads ✅
 
 ## Technical Stack
@@ -32,6 +37,7 @@ Puffwise is designed to provide a better user experience than existing habit-tra
 - **Min iOS Version**: 17.0
 - **Architecture**: SwiftUI App lifecycle
 - **Bundle ID**: com.puffwise.app
+- **Settings Management**: Form-based settings UI with @AppStorage persistence
 
 ## Project Structure
 
@@ -39,15 +45,16 @@ Puffwise is designed to provide a better user experience than existing habit-tra
 Puffwise/
 ├── Puffwise.xcodeproj/     # Xcode project configuration
 ├── Puffwise/
-│   ├── PuffwiseApp.swift   # App entry point with @main
-│   ├── ContentView.swift    # Main UI view with NavigationStack
-│   ├── HistoryView.swift    # Historical puff tracking view
-│   ├── Puff.swift           # Data model for puff tracking
-│   ├── PuffGrouping.swift   # Data grouping utilities (day/week/month)
-│   ├── Assets.xcassets/     # App icons and colors
-│   └── Preview Content/     # SwiftUI preview assets
+│   ├── PuffwiseApp.swift       # App entry point with @main
+│   ├── ContentView.swift       # Main UI view with NavigationStack
+│   ├── HistoryView.swift       # Historical puff tracking view
+│   ├── GoalSettingsView.swift  # Goal settings UI with @AppStorage
+│   ├── Puff.swift              # Data model for puff tracking
+│   ├── PuffGrouping.swift      # Data grouping utilities (day/week/month)
+│   ├── Assets.xcassets/        # App icons and colors
+│   └── Preview Content/        # SwiftUI preview assets
 └── PuffwiseTests/
-    └── PuffwiseTests.swift  # Comprehensive test suite (22 tests)
+    └── PuffwiseTests.swift  # Comprehensive test suite (26 tests)
 ```
 
 ## Getting Started
@@ -114,6 +121,12 @@ The test suite uses Swift Testing framework (Swift 5.9+) with comprehensive cove
   - Day, week, and month formatting
   - Static formatter reusability and performance
 
-**Total: 22 tests, all passing**
+- **Goal Settings Tests** (4 tests): Goal persistence and validation
+  - Default value initialization
+  - UserDefaults persistence
+  - Range validation (1-100 bounds)
+  - Goal update functionality
+
+**Total: 26 tests, all passing**
 
 The tests use Swift Testing framework (introduced in Swift 5.9), which provides better error messages, native async/await support, and more Swift-native syntax than traditional XCTest.

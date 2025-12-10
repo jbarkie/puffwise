@@ -9,6 +9,16 @@ struct ContentView: View {
     // Key used to store/retrieve puffs from UserDefaults
     private let puffsKey = "puffs"
 
+    // State variable to control the presentation of the goal settings sheet.
+    // When true, the sheet appears; when false, it's dismissed.
+    @State private var showingGoalSettings = false
+
+    // @AppStorage provides automatic persistence for the daily puff goal.
+    // This property is shared with GoalSettingsView using the same storage key "dailyPuffGoal".
+    // Any changes in either view will automatically sync because they share the same UserDefaults key.
+    // Default value of 10 is used on first launch when no value exists in UserDefaults.
+    @AppStorage("dailyPuffGoal") private var dailyPuffGoal: Int = 10
+
     // Computed property that filters puffs to only include today's entries.
     // This recalculates automatically whenever 'puffs' changes.
     private var todaysPuffs: [Puff] {
@@ -89,6 +99,13 @@ struct ContentView: View {
                     Text("\(todaysPuffs.count)")
                         .font(.system(size: 72, weight: .bold))
                         .foregroundStyle(.primary)
+
+                    // Goal progress display
+                    // Shows current puff count relative to the daily goal (e.g., "7 of 10 puffs")
+                    // Updates automatically when puffs are logged or goal is changed in settings
+                    Text("\(todaysPuffs.count) of \(dailyPuffGoal) puffs")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
                 }
 
                 // Main action button
@@ -123,6 +140,19 @@ struct ContentView: View {
             // .toolbar lets us add items to the navigation bar
             // Common placements: .topBarTrailing (top-right), .topBarLeading (top-left), .bottomBar
             .toolbar {
+                // Settings button on the left side of the toolbar
+                ToolbarItem(placement: .topBarLeading) {
+                    Button {
+                        // Set the state variable to true, which triggers the sheet presentation
+                        // The sheet modifier below watches this variable and shows/hides accordingly
+                        showingGoalSettings = true
+                    } label: {
+                        // SF Symbol "gear" is the standard icon for settings across iOS
+                        // Label provides both the icon and accessibility text
+                        Label("Settings", systemImage: "gear")
+                    }
+                }
+
                 ToolbarItem(placement: .topBarTrailing) {
                     // NavigationLink creates a button that navigates to another view
                     // The destination parameter specifies which view to show
@@ -139,6 +169,13 @@ struct ContentView: View {
             // We use it to load our saved puffs from UserDefaults
             .onAppear {
                 loadPuffs()
+            }
+            // .sheet presents a modal view when the binding variable becomes true.
+            // This is the standard SwiftUI pattern for presenting settings, forms, or detail views.
+            // When showingGoalSettings changes to true, the sheet slides up from the bottom.
+            // When dismissed (via the Done button in GoalSettingsView), it automatically sets back to false.
+            .sheet(isPresented: $showingGoalSettings) {
+                GoalSettingsView()
             }
         }
     }

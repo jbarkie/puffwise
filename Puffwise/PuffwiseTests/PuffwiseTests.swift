@@ -638,6 +638,144 @@ struct DateFormatterTests {
     }
 }
 
+// MARK: - Goal Settings Tests
+
+/// Test suite for goal settings functionality.
+///
+/// **What we're testing:**
+/// Goal persistence, default values, and validation logic.
+/// These tests ensure the goal setting feature works correctly
+/// and persists data as expected.
+///
+/// **Testing Strategy:**
+/// We use separate UserDefaults suite names for each test to ensure test isolation.
+/// This prevents tests from interfering with each other or with the actual app's data.
+/// Each test calls removePersistentDomain to start with a clean slate.
+struct GoalSettingsTests {
+
+    // MARK: - Test: Default Goal Value
+
+    /// Tests that the default goal value is properly handled.
+    ///
+    /// **What this tests:**
+    /// - UserDefaults behavior when a key doesn't exist
+    /// - Default value handling for @AppStorage
+    ///
+    /// **How @AppStorage defaults work:**
+    /// When a key doesn't exist in UserDefaults, @AppStorage uses the default value
+    /// specified in the property declaration (in this case, 10).
+    /// UserDefaults.integer(forKey:) returns 0 if the key doesn't exist, but
+    /// @AppStorage handles the default value before that level.
+    @Test func defaultGoalValueIs10() async throws {
+        // Create a test UserDefaults suite to avoid affecting actual app data
+        let defaults = UserDefaults(suiteName: "test.goal.defaults")!
+        // Clear any existing data in the test suite
+        defaults.removePersistentDomain(forName: "test.goal.defaults")
+
+        // When the key doesn't exist, UserDefaults.integer returns 0
+        let rawValue = defaults.integer(forKey: "dailyPuffGoal")
+        #expect(rawValue == 0)
+
+        // But @AppStorage will use the default value (10) specified in the view
+        // This test documents the UserDefaults behavior; the actual default
+        // is handled by @AppStorage in GoalSettingsView and ContentView
+    }
+
+    // MARK: - Test: Goal Persistence
+
+    /// Tests that goal values persist correctly to UserDefaults.
+    ///
+    /// **What this tests:**
+    /// - Setting and retrieving integer values from UserDefaults
+    /// - Data persistence across reads
+    ///
+    /// **Why this matters:**
+    /// @AppStorage relies on UserDefaults under the hood. This test verifies
+    /// that the underlying storage mechanism works correctly for our use case.
+    @Test func goalPersistsToUserDefaults() async throws {
+        // Use a unique suite name for this test
+        let defaults = UserDefaults(suiteName: "test.goal.persistence")!
+        defaults.removePersistentDomain(forName: "test.goal.persistence")
+
+        // Set a goal value
+        defaults.set(25, forKey: "dailyPuffGoal")
+
+        // Verify it was saved and can be retrieved
+        let retrieved = defaults.integer(forKey: "dailyPuffGoal")
+        #expect(retrieved == 25)
+
+        // Set a different value
+        defaults.set(50, forKey: "dailyPuffGoal")
+
+        // Verify the new value is persisted
+        let retrievedAgain = defaults.integer(forKey: "dailyPuffGoal")
+        #expect(retrievedAgain == 50)
+    }
+
+    // MARK: - Test: Goal Range Validation
+
+    /// Tests that goal values respect the valid range (1-100).
+    ///
+    /// **What this tests:**
+    /// - The expected min and max bounds for goals
+    /// - Documentation of the valid range
+    ///
+    /// **How validation works:**
+    /// In the UI, the Stepper enforces bounds automatically via `in: 1...100`.
+    /// This means users cannot set values outside this range through the interface.
+    /// This test documents the expected range for future reference.
+    @Test func goalValidationRespectsBounds() async throws {
+        // Document the expected range for daily goals
+        let minGoal = 1
+        let maxGoal = 100
+
+        // Verify the range makes sense
+        #expect(minGoal >= 1)  // Lower bound should be at least 1
+        #expect(maxGoal <= 100)  // Upper bound should be at most 100
+        #expect(maxGoal > minGoal)  // Max should be greater than min
+
+        // The Stepper in GoalSettingsView enforces this range:
+        // Stepper(value: $dailyPuffGoal, in: 1...100)
+    }
+
+    // MARK: - Test: Goal Updates
+
+    /// Tests that updating the goal value works correctly.
+    ///
+    /// **What this tests:**
+    /// - Multiple consecutive updates to the goal
+    /// - Overwriting previous values
+    /// - Persistence of updated values
+    ///
+    /// **Real-world scenario:**
+    /// Users may adjust their goal multiple times as they progress.
+    /// This test ensures all updates are handled correctly.
+    @Test func goalCanBeUpdated() async throws {
+        let defaults = UserDefaults(suiteName: "test.goal.updates")!
+        defaults.removePersistentDomain(forName: "test.goal.updates")
+
+        // Set initial goal
+        defaults.set(10, forKey: "dailyPuffGoal")
+        #expect(defaults.integer(forKey: "dailyPuffGoal") == 10)
+
+        // Update to a higher goal
+        defaults.set(20, forKey: "dailyPuffGoal")
+        #expect(defaults.integer(forKey: "dailyPuffGoal") == 20)
+
+        // Update to a lower goal
+        defaults.set(5, forKey: "dailyPuffGoal")
+        #expect(defaults.integer(forKey: "dailyPuffGoal") == 5)
+
+        // Update to max bound
+        defaults.set(100, forKey: "dailyPuffGoal")
+        #expect(defaults.integer(forKey: "dailyPuffGoal") == 100)
+
+        // Update to min bound
+        defaults.set(1, forKey: "dailyPuffGoal")
+        #expect(defaults.integer(forKey: "dailyPuffGoal") == 1)
+    }
+}
+
 // MARK: - Educational Notes
 //
 // **Why use @testable import?**

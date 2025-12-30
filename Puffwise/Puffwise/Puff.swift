@@ -2,7 +2,7 @@ import Foundation
 
 // Puff represents a single logged puff with a timestamp.
 // This struct is the core data model for tracking individual puffs over time.
-struct Puff: Codable, Identifiable {
+struct Puff: Codable, Identifiable, Equatable {
     // Identifiable requires an 'id' property so SwiftUI can track items in lists.
     // UUID (Universally Unique Identifier) ensures each puff has a unique ID.
     let id: UUID
@@ -28,3 +28,7 @@ struct Puff: Codable, Identifiable {
 // Identifiable: This protocol requires an 'id' property. It's used by SwiftUI to efficiently
 // track items in Lists and ForEach loops. Each item needs a stable, unique identifier so
 // SwiftUI knows which items changed, moved, or were deleted.
+//
+// Equatable: This protocol allows Swift to compare two Puff instances for equality. Since all
+// properties (UUID and Date) are already Equatable, Swift can automatically synthesize the
+// implementation. This is required for SwiftUI's .onChange(of:) modifier to detect array changes.

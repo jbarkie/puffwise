@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		B454AEF3383949D6840D8C22 /* EditPuffView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A221399BA4F421FBDBCC080 /* EditPuffView.swift */; };
 		4E00FF252EC82F4500387ED5 /* Puff.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E00FF242EC82F4500387ED5 /* Puff.swift */; };
 		4E00FF262EC82F4500387ED6 /* HistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E00FF272EC82F4500387ED6 /* HistoryView.swift */; };
 		4E00FF282EC82F4500387ED7 /* PuffGrouping.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E00FF292EC82F4500387ED7 /* PuffGrouping.swift */; };
@@ -30,6 +31,7 @@
 /* Begin PBXFileReference section */
 		4E00FF242EC82F4500387ED5 /* Puff.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Puff.swift; sourceTree = "<group>"; };
 		4E00FF272EC82F4500387ED6 /* HistoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryView.swift; sourceTree = "<group>"; };
+		3A221399BA4F421FBDBCC080 /* EditPuffView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditPuffView.swift; sourceTree = "<group>"; };
 		4E00FF292EC82F4500387ED7 /* PuffGrouping.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PuffGrouping.swift; sourceTree = "<group>"; };
 		4E00FF312EC82F4500387ED8 /* GoalSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GoalSettingsView.swift; sourceTree = "<group>"; };
 		4E4B351C2EDE9375001F15A6 /* PuffwiseTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = PuffwiseTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -87,6 +89,7 @@
 				BB0000000000000000000001 /* PuffwiseApp.swift */,
 				BB0000000000000000000002 /* ContentView.swift */,
 				4E00FF272EC82F4500387ED6 /* HistoryView.swift */,
+				3A221399BA4F421FBDBCC080 /* EditPuffView.swift */,
 				4E00FF312EC82F4500387ED8 /* GoalSettingsView.swift */,
 				BB0000000000000000000003 /* Assets.xcassets */,
 				BB0000000000000000000004 /* Preview Content */,
@@ -220,6 +223,7 @@
 				4E00FF252EC82F4500387ED5 /* Puff.swift in Sources */,
 				4E00FF282EC82F4500387ED7 /* PuffGrouping.swift in Sources */,
 				4E00FF262EC82F4500387ED6 /* HistoryView.swift in Sources */,
+				B454AEF3383949D6840D8C22 /* EditPuffView.swift in Sources */,
 				4E00FF302EC82F4500387ED8 /* GoalSettingsView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

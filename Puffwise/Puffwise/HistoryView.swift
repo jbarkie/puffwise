@@ -30,6 +30,11 @@ struct HistoryView: View {
     // @State is for view-local data that can change over time
     @State private var selectedPeriod: PuffGroupPeriod = .day
 
+    // State variable to track which puff is being edited
+    // When set to a non-nil value, the edit sheet is presented
+    // Using Puff? (optional) allows us to use .sheet(item:) for automatic presentation
+    @State private var puffToEdit: Puff?
+
     // MARK: - Chart View
 
     /// Empty state view shown when there is no puff data to display.
@@ -118,26 +123,56 @@ struct HistoryView: View {
             chartView
 
             // List section below
-            // This shows the detailed data for each period
+            // This shows the detailed data for each period, now with expandable individual puffs
             // List creates a scrollable list view
             List {
                 // ForEach iterates over the grouped puffs
                 // PuffGroup conforms to Identifiable, so ForEach can use its id automatically
                 ForEach(puffs.groupedBy(selectedPeriod)) { group in
-                    // HStack arranges views horizontally
-                    HStack {
-                        // Display the formatted date on the left using the appropriate formatter
-                        Text(formatterForPeriod(selectedPeriod).string(from: group.date))
-                            .font(.body)
+                    // Section creates a grouped section with a header
+                    // This provides a two-level hierarchy: groups and individual puffs
+                    Section {
+                        // Inner ForEach iterates over individual puffs within this group
+                        // Each puff can be tapped to edit or swiped to delete
+                        ForEach(group.puffs) { puff in
+                            // HStack arranges the puff's timestamp horizontally
+                            HStack {
+                                // Display the puff's exact timestamp
+                                // For daily view, show time; for weekly/monthly, show full date+time
+                                Text(timestampFormatter(for: selectedPeriod).string(from: puff.timestamp))
+                                    .font(.body)
 
-                        // Spacer pushes content to the edges
-                        Spacer()
+                                Spacer()
 
-                        // Display the puff count on the right
-                        Text("\(group.count)")
-                            .font(.body)
-                            .fontWeight(.semibold)
-                            .foregroundColor(.secondary)
+                                // Visual indicator that the row is tappable
+                                Image(systemName: "pencil.circle")
+                                    .font(.body)
+                                    .foregroundColor(.blue.opacity(0.6))
+                            }
+                            // Tap gesture to edit this puff
+                            .onTapGesture {
+                                puffToEdit = puff
+                            }
+                            // Swipe actions for delete
+                            .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                                Button(role: .destructive) {
+                                    deletePuff(puff)
+                                } label: {
+                                    Label("Delete", systemImage: "trash")
+                                }
+                            }
+                        }
+                    } header: {
+                        // Section header showing the period date and total count
+                        HStack {
+                            Text(formatterForPeriod(selectedPeriod).string(from: group.date))
+                                .font(.subheadline)
+                                .fontWeight(.semibold)
+                            Spacer()
+                            Text("\(group.count) puff\(group.count == 1 ? "" : "s")")
+                                .font(.subheadline)
+                                .foregroundColor(.secondary)
+                        }
                     }
                 }
             }
@@ -166,6 +201,14 @@ struct HistoryView: View {
                 // .segmented style gives us the iOS-style segmented control
                 // This is the horizontal button group commonly used for filters
                 .pickerStyle(.segmented)
+            }
+        }
+        // Sheet presentation for editing a puff
+        // .sheet(item:) automatically presents when puffToEdit becomes non-nil
+        // and dismisses when it becomes nil. The item parameter provides the puff to edit.
+        .sheet(item: $puffToEdit) { puff in
+            EditPuffView(originalPuff: puff) { editedPuff in
+                updatePuff(editedPuff)
             }
         }
     }
@@ -215,6 +258,70 @@ struct HistoryView: View {
         case .month:
             return .month
         }
+    }
+
+    // MARK: - Edit/Delete Methods
+
+    /// Updates a puff with a new timestamp while preserving its ID.
+    ///
+    /// This method follows the immutable pattern for the Puff model. Rather than
+    /// modifying the puff directly (which isn't possible since properties are `let`),
+    /// we replace the puff in the array with a new one that has the same ID but
+    /// an updated timestamp.
+    ///
+    /// The update propagates through the @Binding to ContentView, where the onChange
+    /// modifier will automatically persist the change to UserDefaults.
+    ///
+    /// - Parameter editedPuff: The new puff with updated timestamp (same ID as original)
+    private func updatePuff(_ editedPuff: Puff) {
+        // Find the index of the puff with this ID
+        if let index = puffs.firstIndex(where: { $0.id == editedPuff.id }) {
+            // Replace the old puff with the edited one
+            // This triggers SwiftUI to update all dependent views (charts, lists, counts)
+            puffs[index] = editedPuff
+        }
+        // Clear the edit state (though the sheet will dismiss automatically)
+        puffToEdit = nil
+    }
+
+    /// Deletes a puff from the array.
+    ///
+    /// This method removes the puff with the matching ID from the puffs array.
+    /// The deletion propagates through the @Binding to ContentView, where the
+    /// onChange modifier will automatically persist the change to UserDefaults.
+    ///
+    /// Groups and charts automatically update via SwiftUI's reactivity system.
+    /// If this is the last puff in a group, the entire section will disappear.
+    ///
+    /// - Parameter puff: The puff to delete
+    private func deletePuff(_ puff: Puff) {
+        // Remove all puffs with this ID (should only be one due to UUID uniqueness)
+        puffs.removeAll { $0.id == puff.id }
+    }
+
+    /// Returns a DateFormatter appropriate for displaying individual puff timestamps.
+    ///
+    /// The format varies based on the grouping period:
+    /// - **Day view**: Show only time (e.g., "2:30 PM") since all puffs are from the same day
+    /// - **Week/Month view**: Show both date and time (e.g., "Jan 15, 2:30 PM")
+    ///
+    /// This creates a more readable display than always showing the full timestamp.
+    ///
+    /// - Parameter period: The current grouping period
+    /// - Returns: A DateFormatter configured for the period
+    private func timestampFormatter(for period: PuffGroupPeriod) -> DateFormatter {
+        let formatter = DateFormatter()
+        switch period {
+        case .day:
+            // For daily view, only show the time since the date is in the section header
+            formatter.timeStyle = .short
+            formatter.dateStyle = .none
+        case .week, .month:
+            // For weekly/monthly view, show both date and time for clarity
+            formatter.dateStyle = .short
+            formatter.timeStyle = .short
+        }
+        return formatter
     }
 }
 

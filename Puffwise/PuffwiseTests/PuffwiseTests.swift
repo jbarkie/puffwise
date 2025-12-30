@@ -776,6 +776,282 @@ struct GoalSettingsTests {
     }
 }
 
+// MARK: - Puff Edit/Delete Tests
+
+/// Test suite for edit and delete functionality.
+///
+/// **What we're testing:**
+/// These tests verify that puffs can be edited (timestamp changed while preserving ID)
+/// and deleted from the array, with proper handling of edge cases like cross-day edits,
+/// group updates, and today's count changes.
+struct PuffEditDeleteTests {
+
+    // MARK: - Delete Tests
+
+    /// Tests that deleting a puff removes it from the array.
+    @Test func deletePuffRemovesFromArray() async throws {
+        let puff1 = Puff(timestamp: Date())
+        let puff2 = Puff(timestamp: Date().addingTimeInterval(-3600))
+        var puffs = [puff1, puff2]
+
+        // Delete puff1
+        puffs.removeAll { $0.id == puff1.id }
+
+        #expect(puffs.count == 1)
+        #expect(puffs[0].id == puff2.id)
+    }
+
+    /// Tests that deleting a puff preserves other puffs in the array.
+    @Test func deletePuffPreservesOtherPuffs() async throws {
+        let puff1 = Puff(timestamp: Date())
+        let puff2 = Puff(timestamp: Date().addingTimeInterval(-3600))
+        let puff3 = Puff(timestamp: Date().addingTimeInterval(-7200))
+        var puffs = [puff1, puff2, puff3]
+
+        // Delete middle puff
+        puffs.removeAll { $0.id == puff2.id }
+
+        #expect(puffs.count == 2)
+        #expect(puffs[0].id == puff1.id)
+        #expect(puffs[1].id == puff3.id)
+    }
+
+    /// Tests that deleting all puffs in a group results in an empty group.
+    @Test func deleteAllPuffsInGroup() async throws {
+        let calendar = Calendar.current
+        let jan1 = calendar.date(from: DateComponents(year: 2024, month: 1, day: 1, hour: 9))!
+
+        let puff1 = Puff(timestamp: jan1)
+        let puff2 = Puff(timestamp: jan1.addingTimeInterval(3600))
+        var puffs = [puff1, puff2]
+
+        // Group by day should show 1 group with 2 puffs
+        let groupsBefore = puffs.groupedBy(.day)
+        #expect(groupsBefore.count == 1)
+        #expect(groupsBefore[0].count == 2)
+
+        // Delete all puffs
+        puffs.removeAll { $0.id == puff1.id }
+        puffs.removeAll { $0.id == puff2.id }
+
+        // Group by day should now be empty
+        let groupsAfter = puffs.groupedBy(.day)
+        #expect(groupsAfter.isEmpty)
+    }
+
+    /// Tests that deleting today's puff updates today's count correctly.
+    @Test func deleteTodaysPuffUpdatesCount() async throws {
+        let calendar = Calendar.current
+        let now = Date()
+        let todayPuff1 = Puff(timestamp: now)
+        let todayPuff2 = Puff(timestamp: now.addingTimeInterval(-3600))
+        let yesterdayPuff = Puff(timestamp: now.addingTimeInterval(-86400))
+        var puffs = [todayPuff1, todayPuff2, yesterdayPuff]
+
+        // Filter today's puffs
+        let todaysPuffsBefore = puffs.filter { calendar.isDate($0.timestamp, inSameDayAs: now) }
+        #expect(todaysPuffsBefore.count == 2)
+
+        // Delete one of today's puffs
+        puffs.removeAll { $0.id == todayPuff1.id }
+
+        // Today's count should decrease
+        let todaysPuffsAfter = puffs.filter { calendar.isDate($0.timestamp, inSameDayAs: now) }
+        #expect(todaysPuffsAfter.count == 1)
+        #expect(todaysPuffsAfter[0].id == todayPuff2.id)
+    }
+
+    // MARK: - Edit Tests
+
+    /// Tests that editing a puff preserves its ID.
+    @Test func editPuffPreservesID() async throws {
+        let originalPuff = Puff(timestamp: Date())
+        var puffs = [originalPuff]
+
+        // Edit the timestamp
+        let newTimestamp = Date().addingTimeInterval(-3600)
+        let editedPuff = Puff(id: originalPuff.id, timestamp: newTimestamp)
+
+        if let index = puffs.firstIndex(where: { $0.id == originalPuff.id }) {
+            puffs[index] = editedPuff
+        }
+
+        #expect(puffs.count == 1)
+        #expect(puffs[0].id == originalPuff.id)
+        #expect(puffs[0].timestamp == newTimestamp)
+    }
+
+    /// Tests that editing a puff updates its timestamp.
+    @Test func editPuffUpdatesTimestamp() async throws {
+        let calendar = Calendar.current
+        let jan1 = calendar.date(from: DateComponents(year: 2024, month: 1, day: 1, hour: 9))!
+        let jan2 = calendar.date(from: DateComponents(year: 2024, month: 1, day: 2, hour: 14))!
+
+        let originalPuff = Puff(timestamp: jan1)
+        var puffs = [originalPuff]
+
+        // Edit to different day
+        let editedPuff = Puff(id: originalPuff.id, timestamp: jan2)
+
+        if let index = puffs.firstIndex(where: { $0.id == originalPuff.id }) {
+            puffs[index] = editedPuff
+        }
+
+        #expect(puffs[0].timestamp == jan2)
+        #expect(calendar.isDate(puffs[0].timestamp, inSameDayAs: jan2))
+    }
+
+    /// Tests that editing a puff to a different day updates grouping correctly.
+    @Test func editPuffToDifferentDay() async throws {
+        let calendar = Calendar.current
+        let jan1 = calendar.date(from: DateComponents(year: 2024, month: 1, day: 1, hour: 9))!
+        let jan2 = calendar.date(from: DateComponents(year: 2024, month: 1, day: 2, hour: 14))!
+
+        let puff1 = Puff(timestamp: jan1)
+        let puff2 = Puff(timestamp: jan1.addingTimeInterval(3600))
+        var puffs = [puff1, puff2]
+
+        // Initially should have 1 group (both on Jan 1)
+        let groupsBefore = puffs.groupedBy(.day)
+        #expect(groupsBefore.count == 1)
+        #expect(groupsBefore[0].count == 2)
+
+        // Edit puff1 to Jan 2
+        let editedPuff = Puff(id: puff1.id, timestamp: jan2)
+        if let index = puffs.firstIndex(where: { $0.id == puff1.id }) {
+            puffs[index] = editedPuff
+        }
+
+        // Should now have 2 groups (one for Jan 1, one for Jan 2)
+        let groupsAfter = puffs.groupedBy(.day)
+        #expect(groupsAfter.count == 2)
+        #expect(groupsAfter.contains { $0.count == 1 })
+    }
+
+    /// Tests that editing today's puff to yesterday affects today's count.
+    @Test func editTodaysPuffAffectsCount() async throws {
+        let calendar = Calendar.current
+        let now = Date()
+        let yesterday = now.addingTimeInterval(-86400)
+
+        let todayPuff1 = Puff(timestamp: now)
+        let todayPuff2 = Puff(timestamp: now.addingTimeInterval(-3600))
+        var puffs = [todayPuff1, todayPuff2]
+
+        // Initially should have 2 puffs today
+        let todaysBefore = puffs.filter { calendar.isDate($0.timestamp, inSameDayAs: now) }
+        #expect(todaysBefore.count == 2)
+
+        // Edit one puff to yesterday
+        let editedPuff = Puff(id: todayPuff1.id, timestamp: yesterday)
+        if let index = puffs.firstIndex(where: { $0.id == todayPuff1.id }) {
+            puffs[index] = editedPuff
+        }
+
+        // Should now have 1 puff today
+        let todaysAfter = puffs.filter { calendar.isDate($0.timestamp, inSameDayAs: now) }
+        #expect(todaysAfter.count == 1)
+        #expect(todaysAfter[0].id == todayPuff2.id)
+    }
+
+    /// Tests that multiple edits to the same puff work correctly.
+    @Test func multipleEditsToSamePuff() async throws {
+        let calendar = Calendar.current
+        let jan1 = calendar.date(from: DateComponents(year: 2024, month: 1, day: 1, hour: 9))!
+        let jan2 = calendar.date(from: DateComponents(year: 2024, month: 1, day: 2, hour: 14))!
+        let jan3 = calendar.date(from: DateComponents(year: 2024, month: 1, day: 3, hour: 10))!
+
+        let originalPuff = Puff(timestamp: jan1)
+        var puffs = [originalPuff]
+
+        // First edit: Jan 1 -> Jan 2
+        let edit1 = Puff(id: originalPuff.id, timestamp: jan2)
+        if let index = puffs.firstIndex(where: { $0.id == originalPuff.id }) {
+            puffs[index] = edit1
+        }
+        #expect(puffs[0].timestamp == jan2)
+        #expect(puffs[0].id == originalPuff.id)
+
+        // Second edit: Jan 2 -> Jan 3
+        let edit2 = Puff(id: originalPuff.id, timestamp: jan3)
+        if let index = puffs.firstIndex(where: { $0.id == originalPuff.id }) {
+            puffs[index] = edit2
+        }
+        #expect(puffs[0].timestamp == jan3)
+        #expect(puffs[0].id == originalPuff.id)
+    }
+
+    /// Tests that editing a puff across month boundaries updates grouping.
+    @Test func editPuffAcrossMonthBoundary() async throws {
+        let calendar = Calendar.current
+        let jan31 = calendar.date(from: DateComponents(year: 2024, month: 1, day: 31, hour: 23))!
+        let feb1 = calendar.date(from: DateComponents(year: 2024, month: 2, day: 1, hour: 1))!
+
+        let puff = Puff(timestamp: jan31)
+        var puffs = [puff]
+
+        // Initially in January
+        let groupsBefore = puffs.groupedBy(.month)
+        #expect(groupsBefore.count == 1)
+        // The group date should be the start of January
+        #expect(calendar.component(.month, from: groupsBefore[0].date) == 1)
+
+        // Edit to February
+        let editedPuff = Puff(id: puff.id, timestamp: feb1)
+        if let index = puffs.firstIndex(where: { $0.id == puff.id }) {
+            puffs[index] = editedPuff
+        }
+
+        // Should now be in February
+        let groupsAfter = puffs.groupedBy(.month)
+        #expect(groupsAfter.count == 1)
+        #expect(calendar.component(.month, from: groupsAfter[0].date) == 2)
+    }
+
+    /// Tests that editing preserves the puff in the array (doesn't delete or duplicate).
+    @Test func editPuffPreservesArrayIntegrity() async throws {
+        let puff1 = Puff(timestamp: Date())
+        let puff2 = Puff(timestamp: Date().addingTimeInterval(-3600))
+        let puff3 = Puff(timestamp: Date().addingTimeInterval(-7200))
+        var puffs = [puff1, puff2, puff3]
+
+        // Edit middle puff
+        let newTimestamp = Date().addingTimeInterval(-10800)
+        let editedPuff = Puff(id: puff2.id, timestamp: newTimestamp)
+        if let index = puffs.firstIndex(where: { $0.id == puff2.id }) {
+            puffs[index] = editedPuff
+        }
+
+        // Should still have exactly 3 puffs
+        #expect(puffs.count == 3)
+        // Should have the same IDs
+        #expect(puffs.contains { $0.id == puff1.id })
+        #expect(puffs.contains { $0.id == puff2.id })
+        #expect(puffs.contains { $0.id == puff3.id })
+        // Middle puff should have new timestamp
+        let updatedPuff = puffs.first { $0.id == puff2.id }
+        #expect(updatedPuff?.timestamp == newTimestamp)
+    }
+
+    /// Tests that editing a puff to the same time is idempotent (no side effects).
+    @Test func editPuffToSameTimestamp() async throws {
+        let timestamp = Date()
+        let originalPuff = Puff(timestamp: timestamp)
+        var puffs = [originalPuff]
+
+        // "Edit" to the same timestamp
+        let editedPuff = Puff(id: originalPuff.id, timestamp: timestamp)
+        if let index = puffs.firstIndex(where: { $0.id == originalPuff.id }) {
+            puffs[index] = editedPuff
+        }
+
+        // Should be unchanged
+        #expect(puffs.count == 1)
+        #expect(puffs[0].id == originalPuff.id)
+        #expect(puffs[0].timestamp == timestamp)
+    }
+}
+
 // MARK: - Educational Notes
 //
 // **Why use @testable import?**

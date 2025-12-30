@@ -113,9 +113,9 @@ struct ContentView: View {
                     // Create a new Puff with the current timestamp and append it to the array.
                     // The Puff initializer defaults to Date() (current time) and a new UUID.
                     puffs.append(Puff())
-                    // Manually save to UserDefaults after modifying the array
-                    // SwiftUI detects the @State change and re-renders the UI automatically
-                    savePuffs()
+                    // Note: No need to manually call savePuffs() here anymore!
+                    // The .onChange(of: puffs) modifier automatically saves when the array changes.
+                    // SwiftUI detects the @State change and re-renders the UI automatically.
                 }) {
                     // Button content - label and icon
                     Label("Log Puff", systemImage: "plus.circle.fill")
@@ -169,6 +169,13 @@ struct ContentView: View {
             // We use it to load our saved puffs from UserDefaults
             .onAppear {
                 loadPuffs()
+            }
+            // .onChange monitors the puffs array for any modifications.
+            // When the array changes (add, edit, delete), automatically save to UserDefaults.
+            // This ensures all changes persist without requiring manual savePuffs() calls.
+            // The closure receives the old and new values, but we only need to trigger save.
+            .onChange(of: puffs) { _, _ in
+                savePuffs()
             }
             // .sheet presents a modal view when the binding variable becomes true.
             // This is the standard SwiftUI pattern for presenting settings, forms, or detail views.

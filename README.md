@@ -21,8 +21,13 @@ Puffwise is designed to provide a better user experience than existing habit-tra
   - List view displaying puff counts grouped by day, week, or month
   - Segmented control for switching between grouping periods
   - Formatted date labels for each period (e.g., "Jan 15, 2024" or "Week of Jan 15")
-  - Clean layout with date on left, count on right
+  - Section-based layout showing individual puffs within each time period
   - Filter defaults to day view on each app launch
+  - **Edit/Delete Puffs**: Correct mistakes in puff tracking ✅
+    - Tap any puff to edit its timestamp (date and time)
+    - Swipe to delete individual puffs
+    - Changes auto-save to persistent storage
+    - Groups and charts update automatically
 - **Goal Setting**: Track progress toward daily reduction targets ✅
   - Set custom daily puff goal (1-100 puffs)
   - Persistent storage using @AppStorage
@@ -48,13 +53,14 @@ Puffwise/
 │   ├── PuffwiseApp.swift       # App entry point with @main
 │   ├── ContentView.swift       # Main UI view with NavigationStack
 │   ├── HistoryView.swift       # Historical puff tracking view
+│   ├── EditPuffView.swift      # Edit puff timestamp UI with DatePicker
 │   ├── GoalSettingsView.swift  # Goal settings UI with @AppStorage
 │   ├── Puff.swift              # Data model for puff tracking
 │   ├── PuffGrouping.swift      # Data grouping utilities (day/week/month)
 │   ├── Assets.xcassets/        # App icons and colors
 │   └── Preview Content/        # SwiftUI preview assets
 └── PuffwiseTests/
-    └── PuffwiseTests.swift  # Comprehensive test suite (26 tests)
+    └── PuffwiseTests.swift  # Comprehensive test suite (37 tests)
 ```
 
 ## Getting Started
@@ -127,6 +133,18 @@ The test suite uses Swift Testing framework (Swift 5.9+) with comprehensive cove
   - Range validation (1-100 bounds)
   - Goal update functionality
 
-**Total: 26 tests, all passing**
+- **Puff Edit/Delete Tests** (11 tests): Edit and delete functionality
+  - Delete puff removes from array while preserving others
+  - Delete all puffs in a group (empty group handling)
+  - Delete today's puff updates today's count correctly
+  - Edit puff preserves ID while updating timestamp
+  - Edit puff to different day updates grouping correctly
+  - Edit today's puff to yesterday affects counts
+  - Multiple sequential edits to same puff
+  - Edit across month boundaries
+  - Edit preserves array integrity (no duplication/deletion)
+  - Edit to same timestamp is idempotent
+
+**Total: 37 tests, all passing**
 
 The tests use Swift Testing framework (introduced in Swift 5.9), which provides better error messages, native async/await support, and more Swift-native syntax than traditional XCTest.

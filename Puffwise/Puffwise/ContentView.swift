@@ -19,6 +19,11 @@ struct ContentView: View {
     // Default value of 10 is used on first launch when no value exists in UserDefaults.
     @AppStorage("dailyPuffGoal") private var dailyPuffGoal: Int = 10
 
+    // @AppStorage for persisting the best streak achieved.
+    // This value represents the longest consecutive days the user has met their daily goal.
+    // It's only updated when the current streak exceeds the stored best.
+    @AppStorage("bestStreak") private var bestStreak: Int = 0
+
     // Computed property that filters puffs to only include today's entries.
     // This recalculates automatically whenever 'puffs' changes.
     private var todaysPuffs: [Puff] {
@@ -33,6 +38,13 @@ struct ContentView: View {
             // This handles edge cases like midnight crossings correctly
             calendar.isDate(puff.timestamp, inSameDayAs: now)
         }
+    }
+
+    // Computed property that calculates the current streak information.
+    // This recalculates automatically whenever 'puffs' or 'dailyPuffGoal' changes.
+    // The streak represents consecutive days meeting or beating the daily goal.
+    private var streakInfo: StreakInfo {
+        puffs.calculateStreak(dailyGoal: dailyPuffGoal, storedBestStreak: bestStreak)
     }
 
     // Load puffs from UserDefaults
@@ -106,6 +118,35 @@ struct ContentView: View {
                     Text("\(todaysPuffs.count) of \(dailyPuffGoal) puffs")
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
+
+                    // Streak display
+                    // Only shown when there's an active streak or historical best streak
+                    // Motivates users by showing their consecutive days meeting goals
+                    if streakInfo.hasActiveStreak || streakInfo.bestStreak > 0 {
+                        VStack(spacing: 4) {
+                            // Current streak with flame icon (universal streak symbol)
+                            if streakInfo.hasActiveStreak {
+                                HStack(spacing: 6) {
+                                    Image(systemName: "flame.fill")
+                                        .foregroundStyle(.orange)
+                                        .font(.subheadline)
+                                    Text("\(streakInfo.currentStreak) day streak")
+                                        .font(.subheadline)
+                                        .fontWeight(.semibold)
+                                        .foregroundStyle(.primary)
+                                }
+                            }
+
+                            // Best streak (only if different from current and greater than 0)
+                            if streakInfo.bestStreak > 0 &&
+                               streakInfo.bestStreak > streakInfo.currentStreak {
+                                Text("Best: \(streakInfo.bestStreak) days")
+                                    .font(.caption)
+                                    .foregroundStyle(.tertiary)
+                            }
+                        }
+                        .padding(.top, 8)
+                    }
                 }
 
                 // Main action button
@@ -174,8 +215,23 @@ struct ContentView: View {
             // When the array changes (add, edit, delete), automatically save to UserDefaults.
             // This ensures all changes persist without requiring manual savePuffs() calls.
             // The closure receives the old and new values, but we only need to trigger save.
+            // Also updates best streak if current exceeds it.
             .onChange(of: puffs) { _, _ in
                 savePuffs()
+                // Update best streak if current streak exceeds the stored best
+                let info = streakInfo
+                if info.currentStreak > bestStreak {
+                    bestStreak = info.currentStreak
+                }
+            }
+            // .onChange monitors the daily goal for changes.
+            // When the goal changes, recalculate streak and update best if needed.
+            // This ensures streak calculations are accurate when users adjust their goals.
+            .onChange(of: dailyPuffGoal) { _, _ in
+                let info = streakInfo
+                if info.currentStreak > bestStreak {
+                    bestStreak = info.currentStreak
+                }
             }
             // .sheet presents a modal view when the binding variable becomes true.
             // This is the standard SwiftUI pattern for presenting settings, forms, or detail views.

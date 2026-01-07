@@ -24,6 +24,15 @@ struct ContentView: View {
     // It's only updated when the current streak exceeds the stored best.
     @AppStorage("bestStreak") private var bestStreak: Int = 0
 
+    // Cached streak information to avoid redundant calculations.
+    // Updated in updateStreakInfo() when puffs or dailyPuffGoal changes.
+    @State private var streakInfo: StreakInfo = StreakInfo(
+        currentStreak: 0,
+        bestStreak: 0,
+        todayGoalMet: false,
+        todayCount: 0
+    )
+
     // Computed property that filters puffs to only include today's entries.
     // This recalculates automatically whenever 'puffs' changes.
     private var todaysPuffs: [Puff] {
@@ -38,13 +47,6 @@ struct ContentView: View {
             // This handles edge cases like midnight crossings correctly
             calendar.isDate(puff.timestamp, inSameDayAs: now)
         }
-    }
-
-    // Computed property that calculates the current streak information.
-    // This recalculates automatically whenever 'puffs' or 'dailyPuffGoal' changes.
-    // The streak represents consecutive days meeting or beating the daily goal.
-    private var streakInfo: StreakInfo {
-        puffs.calculateStreak(dailyGoal: dailyPuffGoal, storedBestStreak: bestStreak)
     }
 
     // Load puffs from UserDefaults
@@ -78,6 +80,23 @@ struct ContentView: View {
         } catch {
             // If encoding fails (should be rare), log the error
             print("Failed to save puffs: \(error)")
+        }
+    }
+
+    // Update cached streak information and best streak if needed.
+    // This method calculates the streak once and updates both the cached streakInfo
+    // and the persisted bestStreak if the current streak exceeds it.
+    // Called when puffs change, goal changes, or on app launch.
+    private func updateStreakInfo() {
+        // Calculate streak once
+        let info = puffs.calculateStreak(dailyGoal: dailyPuffGoal, storedBestStreak: bestStreak)
+
+        // Update cached state
+        streakInfo = info
+
+        // Update best streak if current exceeds it
+        if info.currentStreak > bestStreak {
+            bestStreak = info.currentStreak
         }
     }
 
@@ -130,7 +149,7 @@ struct ContentView: View {
                                     Image(systemName: "flame.fill")
                                         .foregroundStyle(.orange)
                                         .font(.subheadline)
-                                    Text("\(streakInfo.currentStreak) day streak")
+                                    Text("\(streakInfo.currentStreak) day\(streakInfo.currentStreak == 1 ? "" : "s") streak")
                                         .font(.subheadline)
                                         .fontWeight(.semibold)
                                         .foregroundStyle(.primary)
@@ -140,7 +159,7 @@ struct ContentView: View {
                             // Best streak (only if different from current and greater than 0)
                             if streakInfo.bestStreak > 0 &&
                                streakInfo.bestStreak > streakInfo.currentStreak {
-                                Text("Best: \(streakInfo.bestStreak) days")
+                                Text("Best: \(streakInfo.bestStreak) day\(streakInfo.bestStreak == 1 ? "" : "s")")
                                     .font(.caption)
                                     .foregroundStyle(.tertiary)
                             }
@@ -210,6 +229,7 @@ struct ContentView: View {
             // We use it to load our saved puffs from UserDefaults
             .onAppear {
                 loadPuffs()
+                updateStreakInfo()
             }
             // .onChange monitors the puffs array for any modifications.
             // When the array changes (add, edit, delete), automatically save to UserDefaults.
@@ -218,20 +238,13 @@ struct ContentView: View {
             // Also updates best streak if current exceeds it.
             .onChange(of: puffs) { _, _ in
                 savePuffs()
-                // Update best streak if current streak exceeds the stored best
-                let info = streakInfo
-                if info.currentStreak > bestStreak {
-                    bestStreak = info.currentStreak
-                }
+                updateStreakInfo()
             }
             // .onChange monitors the daily goal for changes.
             // When the goal changes, recalculate streak and update best if needed.
             // This ensures streak calculations are accurate when users adjust their goals.
             .onChange(of: dailyPuffGoal) { _, _ in
-                let info = streakInfo
-                if info.currentStreak > bestStreak {
-                    bestStreak = info.currentStreak
-                }
+                updateStreakInfo()
             }
             // .sheet presents a modal view when the binding variable becomes true.
             // This is the standard SwiftUI pattern for presenting settings, forms, or detail views.

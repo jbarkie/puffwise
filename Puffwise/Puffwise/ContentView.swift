@@ -106,6 +106,21 @@ struct ContentView: View {
                     Text("\(todaysPuffs.count) of \(dailyPuffGoal) puffs")
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
+
+                    // Statistics display
+                    // Shows 7-day and 30-day averages to help users track trends
+                    let stats = puffs.calculateStatistics()
+                    if stats.hasData {
+                        VStack(spacing: 2) {
+                            Text(String(format: "7-day avg: %.1f/day", stats.sevenDayAverage))
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                            Text(String(format: "30-day avg: %.1f/day", stats.thirtyDayAverage))
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                        .padding(.top, 8)
+                    }
                 }
 
                 // Main action button

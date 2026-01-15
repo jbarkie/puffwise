@@ -37,6 +37,11 @@ Puffwise is designed to provide a better user experience than existing habit-tra
   - 7-day and 30-day puff averages
   - Displayed on main screen below goal progress
   - Automatically updates when puffs are added/edited/deleted
+- **Streak Tracking**: Motivational streaks for consecutive days meeting goals ✅
+  - Current streak display with flame icon
+  - Best streak tracking (all-time personal best)
+  - Automatic recalculation when puffs change or goals adjust
+  - Smart handling of incomplete days and zero-puff days
 - **Clean UI**: Minimal, distraction-free interface without ads ✅
 
 ## Technical Stack
@@ -62,10 +67,11 @@ Puffwise/
 │   ├── Puff.swift              # Data model for puff tracking
 │   ├── PuffGrouping.swift      # Data grouping utilities (day/week/month)
 │   ├── StatisticsCalculator.swift  # Statistics calculation (7-day/30-day averages)
+│   ├── StreakCalculator.swift  # Streak calculation logic
 │   ├── Assets.xcassets/        # App icons and colors
 │   └── Preview Content/        # SwiftUI preview assets
 └── PuffwiseTests/
-    └── PuffwiseTests.swift  # Comprehensive test suite (45 tests)
+    └── PuffwiseTests.swift  # Comprehensive test suite (65 tests)
 ```
 
 ## Getting Started
@@ -160,6 +166,17 @@ The test suite uses Swift Testing framework (Swift 5.9+) with comprehensive cove
   - StatisticsInfo Equatable conformance
   - hasData computed property
 
-**Total: 45 tests, all passing**
+- **Streak Calculation Tests** (18 tests): Streak tracking logic
+  - Empty data and no-goal edge cases
+  - Single day and consecutive days streak building
+  - Goal exceeded and missed day streak breaking
+  - Today incomplete/complete handling
+  - Zero puffs counting as meeting goal
+  - Best streak preservation and updates
+  - Year boundary transitions
+  - StreakInfo model properties and Equatable conformance
+  - Impact of edit/delete operations on streaks
+
+**Total: 65 tests, all passing**
 
 The tests use Swift Testing framework (introduced in Swift 5.9), which provides better error messages, native async/await support, and more Swift-native syntax than traditional XCTest.

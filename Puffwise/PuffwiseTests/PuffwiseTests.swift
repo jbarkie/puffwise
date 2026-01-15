@@ -1088,11 +1088,12 @@ struct StreakCalculationTests {
     /// - Streak starts when goal is met
     @Test func singleDayMeetingGoalCreatesOneDayStreak() async throws {
         let calendar = Calendar.current
-        let today = Date()
+        // Use a fixed time (noon) to ensure puffs don't spill into tomorrow
+        let today = calendar.startOfDay(for: Date()).addingTimeInterval(12 * 3600)  // Noon today
 
         // Create 5 puffs today (goal is 10)
-        let puffs = (0..<5).map { hour in
-            Puff(timestamp: today.addingTimeInterval(Double(hour * 3600)))
+        let puffs = (0..<5).map { minute in
+            Puff(timestamp: today.addingTimeInterval(Double(minute * 60)))  // Add minutes instead of hours
         }
 
         let info = puffs.calculateStreak(dailyGoal: 10, storedBestStreak: 0)
@@ -1255,20 +1256,21 @@ struct StreakCalculationTests {
     /// - Gap in tracking stops streak counting
     @Test func dayWithNoPuffsBreaksStreak() async throws {
         let calendar = Calendar.current
-        let today = Date()
+        // Use a fixed time (noon) to ensure puffs don't spill into adjacent days
+        let today = calendar.startOfDay(for: Date()).addingTimeInterval(12 * 3600)  // Noon today
         var puffs: [Puff] = []
 
         // Today: 5 puffs (meets goal)
-        for hour in 0..<5 {
-            puffs.append(Puff(timestamp: today.addingTimeInterval(Double(hour * 3600))))
+        for minute in 0..<5 {
+            puffs.append(Puff(timestamp: today.addingTimeInterval(Double(minute * 60))))  // Add minutes
         }
 
         // Yesterday: NO PUFFS (missing day)
 
         // Day -2: 5 puffs (meets goal)
         let twoDaysAgo = calendar.date(byAdding: .day, value: -2, to: today)!
-        for hour in 0..<5 {
-            puffs.append(Puff(timestamp: twoDaysAgo.addingTimeInterval(Double(hour * 3600))))
+        for minute in 0..<5 {
+            puffs.append(Puff(timestamp: twoDaysAgo.addingTimeInterval(Double(minute * 60))))  // Add minutes
         }
 
         let info = puffs.calculateStreak(dailyGoal: 10, storedBestStreak: 0)
@@ -1438,12 +1440,13 @@ struct StreakCalculationTests {
     /// - Deleting enough puffs to exceed goal breaks streak
     @Test func deletingPuffCanBreakStreak() async throws {
         let calendar = Calendar.current
-        let today = Date()
+        // Use a fixed time (noon) to ensure puffs don't spill into tomorrow
+        let today = calendar.startOfDay(for: Date()).addingTimeInterval(12 * 3600)  // Noon today
         var puffs: [Puff] = []
 
         // Today: 10 puffs (exactly meets goal of 10)
-        for hour in 0..<10 {
-            puffs.append(Puff(timestamp: today.addingTimeInterval(Double(hour * 3600))))
+        for minute in 0..<10 {
+            puffs.append(Puff(timestamp: today.addingTimeInterval(Double(minute * 60))))  // Add minutes
         }
 
         let infoBefore = puffs.calculateStreak(dailyGoal: 10, storedBestStreak: 0)
@@ -1466,18 +1469,19 @@ struct StreakCalculationTests {
     /// - Moving puff affects both source and destination day counts
     @Test func editingPuffToAnotherDayRecalculatesStreak() async throws {
         let calendar = Calendar.current
-        let today = Date()
+        // Use a fixed time (noon) to ensure puffs don't spill into adjacent days
+        let today = calendar.startOfDay(for: Date()).addingTimeInterval(12 * 3600)  // Noon today
         var puffs: [Puff] = []
 
         // Today: 10 puffs (exactly meets goal)
-        for hour in 0..<10 {
-            puffs.append(Puff(timestamp: today.addingTimeInterval(Double(hour * 3600))))
+        for minute in 0..<10 {
+            puffs.append(Puff(timestamp: today.addingTimeInterval(Double(minute * 60))))  // Add minutes
         }
 
         // Yesterday: 8 puffs (meets goal)
         let yesterday = calendar.date(byAdding: .day, value: -1, to: today)!
-        for hour in 0..<8 {
-            puffs.append(Puff(timestamp: yesterday.addingTimeInterval(Double(hour * 3600))))
+        for minute in 0..<8 {
+            puffs.append(Puff(timestamp: yesterday.addingTimeInterval(Double(minute * 60))))  // Add minutes
         }
 
         let infoBefore = puffs.calculateStreak(dailyGoal: 10, storedBestStreak: 0)
@@ -1506,11 +1510,13 @@ struct StreakCalculationTests {
     /// - Exactly meeting goal (not exceeding) counts as success
     /// - Boundary condition: count == goal
     @Test func exactlyMeetingGoalCountsAsSuccess() async throws {
-        let today = Date()
+        let calendar = Calendar.current
+        // Use a fixed time (noon) to ensure puffs don't spill into tomorrow
+        let today = calendar.startOfDay(for: Date()).addingTimeInterval(12 * 3600)  // Noon today
 
         // Create exactly 10 puffs (goal is 10)
-        let puffs = (0..<10).map { hour in
-            Puff(timestamp: today.addingTimeInterval(Double(hour * 3600)))
+        let puffs = (0..<10).map { minute in
+            Puff(timestamp: today.addingTimeInterval(Double(minute * 60)))  // Add minutes instead of hours
         }
 
         let info = puffs.calculateStreak(dailyGoal: 10, storedBestStreak: 0)

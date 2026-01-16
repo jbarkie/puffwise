@@ -1052,6 +1052,179 @@ struct PuffEditDeleteTests {
     }
 }
 
+// MARK: - Statistics Tests
+
+/// Test suite for statistics calculation functionality.
+///
+/// **What we're testing:**
+/// The StatisticsCalculator calculates 7-day and 30-day averages from puff data.
+/// These tests verify the calculation logic handles various scenarios correctly.
+struct StatisticsTests {
+
+    // MARK: - Test: Empty Array
+
+    /// Tests that calculating statistics on empty data returns zeros.
+    @Test func emptyArrayReturnsZeroAverages() async throws {
+        let puffs: [Puff] = []
+        let stats = puffs.calculateStatistics()
+
+        #expect(stats.sevenDayAverage == 0)
+        #expect(stats.thirtyDayAverage == 0)
+        #expect(stats.hasData == false)
+    }
+
+    // MARK: - Test: Single Day
+
+    /// Tests statistics with puffs from a single day.
+    @Test func singleDayStatistics() async throws {
+        let calendar = Calendar.current
+        let today = calendar.startOfDay(for: Date())
+
+        // Create 5 puffs today
+        let puffs = (0..<5).map { i in
+            Puff(timestamp: today.addingTimeInterval(Double(i) * 3600))
+        }
+
+        let stats = puffs.calculateStatistics()
+
+        // 5 puffs over 1 day = 5.0 average
+        #expect(stats.sevenDayAverage == 5.0)
+        #expect(stats.thirtyDayAverage == 5.0)
+        #expect(stats.hasData == true)
+    }
+
+    // MARK: - Test: Seven Day Average
+
+    /// Tests that 7-day average is calculated correctly.
+    @Test func sevenDayAverageCalculation() async throws {
+        let calendar = Calendar.current
+        let today = calendar.startOfDay(for: Date())
+
+        var puffs: [Puff] = []
+
+        // Create puffs for 7 days with varying counts
+        // Day 0 (today): 4 puffs
+        // Day 1: 6 puffs
+        // Day 2: 2 puffs
+        // Day 3: 8 puffs
+        // Day 4: 4 puffs
+        // Day 5: 6 puffs
+        // Day 6: 0 puffs (no data)
+        // Total: 30 puffs over 6 days with data = 5.0 avg
+        let dailyCounts = [4, 6, 2, 8, 4, 6]
+        for (dayOffset, count) in dailyCounts.enumerated() {
+            let day = calendar.date(byAdding: .day, value: -dayOffset, to: today)!
+            for i in 0..<count {
+                puffs.append(Puff(timestamp: day.addingTimeInterval(Double(i) * 3600)))
+            }
+        }
+
+        let stats = puffs.calculateStatistics()
+
+        // 30 puffs / 6 days = 5.0 average
+        #expect(stats.sevenDayAverage == 5.0)
+    }
+
+    // MARK: - Test: Thirty Day Average
+
+    /// Tests that 30-day average is calculated correctly with more data.
+    @Test func thirtyDayAverageCalculation() async throws {
+        let calendar = Calendar.current
+        let today = calendar.startOfDay(for: Date())
+
+        var puffs: [Puff] = []
+
+        // Create 3 puffs per day for 30 days
+        for dayOffset in 0..<30 {
+            let day = calendar.date(byAdding: .day, value: -dayOffset, to: today)!
+            for i in 0..<3 {
+                puffs.append(Puff(timestamp: day.addingTimeInterval(Double(i) * 3600)))
+            }
+        }
+
+        let stats = puffs.calculateStatistics()
+
+        // 90 puffs / 30 days = 3.0 average
+        #expect(stats.thirtyDayAverage == 3.0)
+    }
+
+    // MARK: - Test: Partial Data
+
+    /// Tests statistics when there's less than 7 or 30 days of data.
+    @Test func partialDataStatistics() async throws {
+        let calendar = Calendar.current
+        let today = calendar.startOfDay(for: Date())
+
+        // Only 3 days of data
+        var puffs: [Puff] = []
+        for dayOffset in 0..<3 {
+            let day = calendar.date(byAdding: .day, value: -dayOffset, to: today)!
+            for i in 0..<4 {
+                puffs.append(Puff(timestamp: day.addingTimeInterval(Double(i) * 3600)))
+            }
+        }
+
+        let stats = puffs.calculateStatistics()
+
+        // 12 puffs / 3 days = 4.0 average (for both 7-day and 30-day)
+        #expect(stats.sevenDayAverage == 4.0)
+        #expect(stats.thirtyDayAverage == 4.0)
+    }
+
+    // MARK: - Test: Old Data Excluded
+
+    /// Tests that data older than 30 days is excluded from 30-day average.
+    @Test func oldDataExcludedFromAverage() async throws {
+        let calendar = Calendar.current
+        let today = calendar.startOfDay(for: Date())
+
+        var puffs: [Puff] = []
+
+        // Add 5 puffs today
+        for i in 0..<5 {
+            puffs.append(Puff(timestamp: today.addingTimeInterval(Double(i) * 3600)))
+        }
+
+        // Add 100 puffs from 60 days ago (should be excluded)
+        let sixtyDaysAgo = calendar.date(byAdding: .day, value: -60, to: today)!
+        for i in 0..<100 {
+            puffs.append(Puff(timestamp: sixtyDaysAgo.addingTimeInterval(Double(i) * 60)))
+        }
+
+        let stats = puffs.calculateStatistics()
+
+        // Only today's 5 puffs should count
+        #expect(stats.sevenDayAverage == 5.0)
+        #expect(stats.thirtyDayAverage == 5.0)
+    }
+
+    // MARK: - Test: StatisticsInfo Equatable
+
+    /// Tests that StatisticsInfo Equatable conformance works correctly.
+    @Test func statisticsInfoEquatable() async throws {
+        let stats1 = StatisticsInfo(sevenDayAverage: 5.0, thirtyDayAverage: 4.0)
+        let stats2 = StatisticsInfo(sevenDayAverage: 5.0, thirtyDayAverage: 4.0)
+        let stats3 = StatisticsInfo(sevenDayAverage: 6.0, thirtyDayAverage: 4.0)
+
+        #expect(stats1 == stats2)
+        #expect(stats1 != stats3)
+    }
+
+    // MARK: - Test: hasData Property
+
+    /// Tests the hasData computed property.
+    @Test func hasDataProperty() async throws {
+        let noData = StatisticsInfo(sevenDayAverage: 0, thirtyDayAverage: 0)
+        let hasSevenDay = StatisticsInfo(sevenDayAverage: 5.0, thirtyDayAverage: 0)
+        let hasThirtyDay = StatisticsInfo(sevenDayAverage: 0, thirtyDayAverage: 3.0)
+        let hasBoth = StatisticsInfo(sevenDayAverage: 5.0, thirtyDayAverage: 3.0)
+
+        #expect(noData.hasData == false)
+        #expect(hasSevenDay.hasData == true)
+        #expect(hasThirtyDay.hasData == true)
+        #expect(hasBoth.hasData == true)
+    }
+}
 // MARK: - Streak Calculation Tests
 
 /// Test suite for streak calculation functionality.

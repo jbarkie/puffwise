@@ -33,6 +33,10 @@ Puffwise is designed to provide a better user experience than existing habit-tra
   - Persistent storage using @AppStorage
   - Settings accessible via toolbar gear icon
   - Progress display showing "X of Y puffs"
+- **Statistics Summary**: Track trends over time ✅
+  - 7-day and 30-day puff averages
+  - Displayed on main screen below goal progress
+  - Automatically updates when puffs are added/edited/deleted
 - **Streak Tracking**: Motivational streaks for consecutive days meeting goals ✅
   - Current streak display with flame icon
   - Best streak tracking (all-time personal best)
@@ -62,11 +66,12 @@ Puffwise/
 │   ├── GoalSettingsView.swift  # Goal settings UI with @AppStorage
 │   ├── Puff.swift              # Data model for puff tracking
 │   ├── PuffGrouping.swift      # Data grouping utilities (day/week/month)
+│   ├── StatisticsCalculator.swift  # Statistics calculation (7-day/30-day averages)
 │   ├── StreakCalculator.swift  # Streak calculation logic
 │   ├── Assets.xcassets/        # App icons and colors
 │   └── Preview Content/        # SwiftUI preview assets
 └── PuffwiseTests/
-    └── PuffwiseTests.swift  # Comprehensive test suite (55 tests)
+    └── PuffwiseTests.swift  # Comprehensive test suite (65 tests)
 ```
 
 ## Getting Started
@@ -151,6 +156,16 @@ The test suite uses Swift Testing framework (Swift 5.9+) with comprehensive cove
   - Edit preserves array integrity (no duplication/deletion)
   - Edit to same timestamp is idempotent
 
+- **Statistics Tests** (8 tests): Statistics calculation
+  - Empty array returns zero averages
+  - Single day statistics
+  - 7-day average calculation
+  - 30-day average calculation
+  - Partial data (less than 7/30 days)
+  - Old data exclusion (>30 days)
+  - StatisticsInfo Equatable conformance
+  - hasData computed property
+
 - **Streak Calculation Tests** (18 tests): Streak tracking logic
   - Empty data and no-goal edge cases
   - Single day and consecutive days streak building
@@ -162,6 +177,6 @@ The test suite uses Swift Testing framework (Swift 5.9+) with comprehensive cove
   - StreakInfo model properties and Equatable conformance
   - Impact of edit/delete operations on streaks
 
-**Total: 55 tests, all passing**
+**Total: 65 tests, all passing**
 
 The tests use Swift Testing framework (introduced in Swift 5.9), which provides better error messages, native async/await support, and more Swift-native syntax than traditional XCTest.

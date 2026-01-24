@@ -101,9 +101,8 @@ struct ContentView: View {
         do {
             let decoded = try JSONDecoder().decode([DeletedPuff].self, from: data)
             // Auto-purge expired items on load
+            // The onChange modifier will automatically save the purged array
             deletedPuffs = decoded.purgingExpired()
-            // Save back to remove expired items from storage
-            saveDeletedPuffs()
         } catch {
             print("Failed to load deleted puffs: \(error)")
         }

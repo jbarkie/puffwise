@@ -1819,13 +1819,31 @@ struct UndoTrashTests {
         #expect(formatted == "Expired")
     }
 
-    /// Tests that DeletedPuff uses the original puff's ID.
-    @Test func deletedPuffPreservesOriginalID() async throws {
+    /// Tests that DeletedPuff preserves the original puff's ID and generates a unique deletion ID.
+    @Test func deletedPuffPreservesOriginalIDAndGeneratesUniqueID() async throws {
         let originalID = UUID()
         let puff = Puff(id: originalID, timestamp: Date())
         let deletedPuff = DeletedPuff(puff: puff)
 
-        #expect(deletedPuff.id == originalID)
+        // The puffId should match the original
+        #expect(deletedPuff.puffId == originalID)
+        // The deletedPuff.id should be different (unique for each deletion)
+        #expect(deletedPuff.id != originalID)
+    }
+
+    /// Tests that multiple deletions of the same puff get unique IDs.
+    @Test func multipleDeletionsGetUniqueIDs() async throws {
+        let puff = Puff(timestamp: Date())
+
+        let deleted1 = DeletedPuff(puff: puff)
+        let deleted2 = DeletedPuff(puff: puff)
+
+        // Both should preserve the same puffId
+        #expect(deleted1.puffId == puff.id)
+        #expect(deleted2.puffId == puff.id)
+
+        // But each deletion should have a unique ID
+        #expect(deleted1.id != deleted2.id)
     }
 
     // MARK: - Auto-Purge Tests
@@ -1922,6 +1940,7 @@ struct UndoTrashTests {
 
         // Verify all properties match
         #expect(decoded.id == deletedPuff.id)
+        #expect(decoded.puffId == deletedPuff.puffId)
         #expect(decoded.puff.id == deletedPuff.puff.id)
         #expect(abs(decoded.puff.timestamp.timeIntervalSince(deletedPuff.puff.timestamp)) < 0.001)
         #expect(abs(decoded.deletedAt.timeIntervalSince(deletedPuff.deletedAt)) < 0.001)

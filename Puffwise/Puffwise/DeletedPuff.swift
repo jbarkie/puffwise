@@ -24,9 +24,17 @@ import Foundation
 /// - Identifiable: Allows SwiftUI to track items in Lists and ForEach loops
 /// - Equatable: Enables change detection and array operations
 struct DeletedPuff: Codable, Identifiable, Equatable {
+    /// Recovery window for deleted items (24 hours in seconds)
+    static let recoveryWindowSeconds: TimeInterval = 24 * 60 * 60
+
     /// Unique identifier for this deleted puff entry.
-    /// Uses the original puff's ID to maintain consistency during restore.
+    /// Each deletion gets a new UUID to prevent duplicate IDs when items
+    /// are deleted, restored, and deleted again.
     let id: UUID
+
+    /// ID of the original puff that was deleted.
+    /// Used to match the deleted puff back to its original when restoring.
+    let puffId: UUID
 
     /// The original puff that was deleted.
     /// Stored so it can be fully restored with all original data intact.
@@ -42,7 +50,8 @@ struct DeletedPuff: Codable, Identifiable, Equatable {
     ///   - puff: The original puff being deleted
     ///   - deletedAt: The deletion timestamp (defaults to current time)
     init(puff: Puff, deletedAt: Date = Date()) {
-        self.id = puff.id // Use the puff's ID for consistency
+        self.id = UUID() // Unique ID for each deletion
+        self.puffId = puff.id // Track the original puff's ID
         self.puff = puff
         self.deletedAt = deletedAt
     }
@@ -57,8 +66,7 @@ struct DeletedPuff: Codable, Identifiable, Equatable {
     ///
     /// - Returns: True if the puff was deleted more than 24 hours ago
     func isExpired() -> Bool {
-        let expiryInterval: TimeInterval = 24 * 60 * 60 // 24 hours in seconds
-        let expiryDate = deletedAt.addingTimeInterval(expiryInterval)
+        let expiryDate = deletedAt.addingTimeInterval(Self.recoveryWindowSeconds)
         return Date() >= expiryDate
     }
 
@@ -69,8 +77,7 @@ struct DeletedPuff: Codable, Identifiable, Equatable {
     ///
     /// - Returns: Time interval remaining until expiry, or 0 if already expired
     func timeUntilExpiry() -> TimeInterval {
-        let expiryInterval: TimeInterval = 24 * 60 * 60 // 24 hours
-        let expiryDate = deletedAt.addingTimeInterval(expiryInterval)
+        let expiryDate = deletedAt.addingTimeInterval(Self.recoveryWindowSeconds)
         let remaining = expiryDate.timeIntervalSince(Date())
         return max(0, remaining) // Never return negative values
     }

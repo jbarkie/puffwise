@@ -28,6 +28,26 @@ struct TrashView: View {
     // Environment variable to dismiss the sheet
     @Environment(\.dismiss) private var dismiss
 
+    // State variable to control empty trash confirmation dialog
+    @State private var showingEmptyConfirmation = false
+
+    // MARK: - Static Formatters
+
+    /// Static timestamp formatter (reused to avoid repeated allocation)
+    private static let timestampFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.dateStyle = .medium
+        formatter.timeStyle = .short
+        return formatter
+    }()
+
+    /// Static relative date formatter (reused to avoid repeated allocation)
+    private static let relativeDateFormatter: RelativeDateTimeFormatter = {
+        let formatter = RelativeDateTimeFormatter()
+        formatter.unitsStyle = .abbreviated
+        return formatter
+    }()
+
     var body: some View {
         NavigationStack {
             Group {
@@ -41,6 +61,11 @@ struct TrashView: View {
             }
             .navigationTitle("Trash")
             .navigationBarTitleDisplayMode(.large)
+            .onAppear {
+                // Auto-purge expired items when trash view appears
+                // This ensures "Expired" items are removed immediately
+                purgeExpiredItems()
+            }
             .toolbar {
                 // Done button to dismiss the sheet
                 ToolbarItem(placement: .topBarTrailing) {
@@ -53,12 +78,24 @@ struct TrashView: View {
                 if !deletedPuffs.isEmpty {
                     ToolbarItem(placement: .topBarLeading) {
                         Button(role: .destructive) {
-                            emptyTrash()
+                            showingEmptyConfirmation = true
                         } label: {
                             Label("Empty Trash", systemImage: "trash.slash")
                         }
                     }
                 }
+            }
+            .confirmationDialog(
+                "Empty Trash?",
+                isPresented: $showingEmptyConfirmation,
+                titleVisibility: .visible
+            ) {
+                Button("Empty Trash (\(deletedPuffs.count) item\(deletedPuffs.count == 1 ? "" : "s"))", role: .destructive) {
+                    emptyTrash()
+                }
+                Button("Cancel", role: .cancel) {}
+            } message: {
+                Text("This will permanently delete all \(deletedPuffs.count) item\(deletedPuffs.count == 1 ? "" : "s") in the trash. This action cannot be undone.")
             }
         }
     }
@@ -154,19 +191,19 @@ struct TrashView: View {
 
     // MARK: - Helper Methods
 
-    /// Formats a puff timestamp for display
+    /// Formats a puff timestamp for display using cached static formatter
     private func formatTimestamp(_ date: Date) -> String {
-        let formatter = DateFormatter()
-        formatter.dateStyle = .medium
-        formatter.timeStyle = .short
-        return formatter.string(from: date)
+        return Self.timestampFormatter.string(from: date)
     }
 
-    /// Formats the deletion time as a relative string
+    /// Formats the deletion time as a relative string using cached static formatter
     private func formatDeletedTime(_ date: Date) -> String {
-        let formatter = RelativeDateTimeFormatter()
-        formatter.unitsStyle = .abbreviated
-        return formatter.localizedString(for: date, relativeTo: Date())
+        return Self.relativeDateFormatter.localizedString(for: date, relativeTo: Date())
+    }
+
+    /// Removes expired items from the trash
+    private func purgeExpiredItems() {
+        deletedPuffs = deletedPuffs.purgingExpired()
     }
 
     /// Restores a deleted puff back to the active puffs array

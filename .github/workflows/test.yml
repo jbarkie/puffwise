@@ -23,5 +23,5 @@ jobs:
           xcodebuild test \
             -project Puffwise.xcodeproj \
             -scheme Puffwise \
-            -destination 'platform=iOS Simulator,name=iPhone 16' \
+            -destination 'platform=iOS Simulator,name=iPhone 15 Pro' \
             -enableCodeCoverage YES

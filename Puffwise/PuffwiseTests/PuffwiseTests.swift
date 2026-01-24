@@ -1721,6 +1721,267 @@ struct StreakCalculationTests {
     }
 }
 
+// MARK: - Undo/Trash Tests
+
+/// Test suite for undo/trash functionality.
+///
+/// **What we're testing:**
+/// The trash system implements a "soft delete" pattern where deleted puffs
+/// are stored for 24 hours before permanent removal. These tests verify:
+/// - DeletedPuff model creation and expiry logic
+/// - Auto-purge mechanism removes expired items
+/// - Encoding/decoding for persistence
+struct UndoTrashTests {
+
+    // MARK: - DeletedPuff Model Tests
+
+    /// Tests that a newly created DeletedPuff is not expired.
+    @Test func newlyDeletedPuffIsNotExpired() async throws {
+        let puff = Puff(timestamp: Date())
+        let deletedPuff = DeletedPuff(puff: puff, deletedAt: Date())
+
+        #expect(deletedPuff.isExpired() == false)
+    }
+
+    /// Tests that a DeletedPuff older than 24 hours is expired.
+    @Test func deletedPuffExpiredAfter24Hours() async throws {
+        let puff = Puff(timestamp: Date())
+        // Create a deleted puff from 25 hours ago
+        let deletionDate = Date().addingTimeInterval(-25 * 60 * 60)
+        let deletedPuff = DeletedPuff(puff: puff, deletedAt: deletionDate)
+
+        #expect(deletedPuff.isExpired() == true)
+    }
+
+    /// Tests that a DeletedPuff at exactly 24 hours is considered expired.
+    @Test func deletedPuffExpiredAtExactly24Hours() async throws {
+        let puff = Puff(timestamp: Date())
+        // Create a deleted puff from exactly 24 hours ago
+        let deletionDate = Date().addingTimeInterval(-24 * 60 * 60)
+        let deletedPuff = DeletedPuff(puff: puff, deletedAt: deletionDate)
+
+        #expect(deletedPuff.isExpired() == true)
+    }
+
+    /// Tests that a DeletedPuff just under 24 hours is not expired.
+    @Test func deletedPuffNotExpiredJustBefore24Hours() async throws {
+        let puff = Puff(timestamp: Date())
+        // Create a deleted puff from 23.9 hours ago
+        let deletionDate = Date().addingTimeInterval(-23.9 * 60 * 60)
+        let deletedPuff = DeletedPuff(puff: puff, deletedAt: deletionDate)
+
+        #expect(deletedPuff.isExpired() == false)
+    }
+
+    /// Tests timeUntilExpiry calculation for a fresh deletion.
+    @Test func timeUntilExpiryForFreshDeletion() async throws {
+        let puff = Puff(timestamp: Date())
+        let deletedPuff = DeletedPuff(puff: puff, deletedAt: Date())
+
+        let timeRemaining = deletedPuff.timeUntilExpiry()
+
+        // Should be approximately 24 hours (within 1 second of test execution)
+        let expectedTime = 24 * 60 * 60.0
+        #expect(abs(timeRemaining - expectedTime) < 1.0)
+    }
+
+    /// Tests timeUntilExpiry returns 0 for expired puffs.
+    @Test func timeUntilExpiryForExpiredPuff() async throws {
+        let puff = Puff(timestamp: Date())
+        let deletionDate = Date().addingTimeInterval(-25 * 60 * 60)
+        let deletedPuff = DeletedPuff(puff: puff, deletedAt: deletionDate)
+
+        let timeRemaining = deletedPuff.timeUntilExpiry()
+
+        #expect(timeRemaining == 0)
+    }
+
+    /// Tests formattedTimeRemaining for a recently deleted puff.
+    @Test func formattedTimeRemainingForRecentDeletion() async throws {
+        let puff = Puff(timestamp: Date())
+        let deletionDate = Date().addingTimeInterval(-1 * 60 * 60) // 1 hour ago
+        let deletedPuff = DeletedPuff(puff: puff, deletedAt: deletionDate)
+
+        let formatted = deletedPuff.formattedTimeRemaining()
+
+        // Should show approximately 23 hours remaining
+        #expect(formatted.contains("23h"))
+    }
+
+    /// Tests formattedTimeRemaining for an expired puff.
+    @Test func formattedTimeRemainingForExpiredPuff() async throws {
+        let puff = Puff(timestamp: Date())
+        let deletionDate = Date().addingTimeInterval(-25 * 60 * 60)
+        let deletedPuff = DeletedPuff(puff: puff, deletedAt: deletionDate)
+
+        let formatted = deletedPuff.formattedTimeRemaining()
+
+        #expect(formatted == "Expired")
+    }
+
+    /// Tests that DeletedPuff uses the original puff's ID.
+    @Test func deletedPuffPreservesOriginalID() async throws {
+        let originalID = UUID()
+        let puff = Puff(id: originalID, timestamp: Date())
+        let deletedPuff = DeletedPuff(puff: puff)
+
+        #expect(deletedPuff.id == originalID)
+    }
+
+    // MARK: - Auto-Purge Tests
+
+    /// Tests that purgingExpired removes only expired items.
+    @Test func purgingExpiredRemovesOnlyExpiredItems() async throws {
+        let now = Date()
+
+        // Create a mix of expired and non-expired deleted puffs
+        let deletedPuffs = [
+            // Expired (25 hours old)
+            DeletedPuff(
+                puff: Puff(timestamp: now),
+                deletedAt: now.addingTimeInterval(-25 * 60 * 60)
+            ),
+            // Not expired (1 hour old)
+            DeletedPuff(
+                puff: Puff(timestamp: now),
+                deletedAt: now.addingTimeInterval(-1 * 60 * 60)
+            ),
+            // Expired (30 hours old)
+            DeletedPuff(
+                puff: Puff(timestamp: now),
+                deletedAt: now.addingTimeInterval(-30 * 60 * 60)
+            ),
+            // Not expired (12 hours old)
+            DeletedPuff(
+                puff: Puff(timestamp: now),
+                deletedAt: now.addingTimeInterval(-12 * 60 * 60)
+            )
+        ]
+
+        let purged = deletedPuffs.purgingExpired()
+
+        // Should only have 2 non-expired items remaining
+        #expect(purged.count == 2)
+    }
+
+    /// Tests that purgingExpired on an empty array returns an empty array.
+    @Test func purgingExpiredOnEmptyArray() async throws {
+        let deletedPuffs: [DeletedPuff] = []
+        let purged = deletedPuffs.purgingExpired()
+
+        #expect(purged.isEmpty)
+    }
+
+    /// Tests that purgingExpired preserves all non-expired items.
+    @Test func purgingExpiredPreservesNonExpiredItems() async throws {
+        let now = Date()
+
+        // Create only non-expired deleted puffs
+        let deletedPuffs = [
+            DeletedPuff(puff: Puff(timestamp: now), deletedAt: now.addingTimeInterval(-1 * 60 * 60)),
+            DeletedPuff(puff: Puff(timestamp: now), deletedAt: now.addingTimeInterval(-5 * 60 * 60)),
+            DeletedPuff(puff: Puff(timestamp: now), deletedAt: now.addingTimeInterval(-20 * 60 * 60))
+        ]
+
+        let purged = deletedPuffs.purgingExpired()
+
+        // All 3 should remain
+        #expect(purged.count == 3)
+    }
+
+    /// Tests that purgingExpired removes all items when all are expired.
+    @Test func purgingExpiredRemovesAllWhenAllExpired() async throws {
+        let now = Date()
+
+        // Create only expired deleted puffs
+        let deletedPuffs = [
+            DeletedPuff(puff: Puff(timestamp: now), deletedAt: now.addingTimeInterval(-25 * 60 * 60)),
+            DeletedPuff(puff: Puff(timestamp: now), deletedAt: now.addingTimeInterval(-30 * 60 * 60)),
+            DeletedPuff(puff: Puff(timestamp: now), deletedAt: now.addingTimeInterval(-48 * 60 * 60))
+        ]
+
+        let purged = deletedPuffs.purgingExpired()
+
+        #expect(purged.isEmpty)
+    }
+
+    // MARK: - Codable Tests
+
+    /// Tests that DeletedPuff can be encoded and decoded.
+    @Test func deletedPuffCodable() async throws {
+        let puff = Puff(timestamp: Date())
+        let deletedPuff = DeletedPuff(puff: puff, deletedAt: Date())
+
+        // Encode to JSON
+        let encoder = JSONEncoder()
+        let data = try encoder.encode(deletedPuff)
+
+        // Decode from JSON
+        let decoder = JSONDecoder()
+        let decoded = try decoder.decode(DeletedPuff.self, from: data)
+
+        // Verify all properties match
+        #expect(decoded.id == deletedPuff.id)
+        #expect(decoded.puff.id == deletedPuff.puff.id)
+        #expect(abs(decoded.puff.timestamp.timeIntervalSince(deletedPuff.puff.timestamp)) < 0.001)
+        #expect(abs(decoded.deletedAt.timeIntervalSince(deletedPuff.deletedAt)) < 0.001)
+    }
+
+    /// Tests that an array of DeletedPuff can be encoded and decoded.
+    @Test func deletedPuffArrayCodable() async throws {
+        let now = Date()
+        let deletedPuffs = [
+            DeletedPuff(puff: Puff(timestamp: now), deletedAt: now),
+            DeletedPuff(puff: Puff(timestamp: now.addingTimeInterval(-3600)), deletedAt: now.addingTimeInterval(-1800))
+        ]
+
+        // Encode to JSON
+        let encoder = JSONEncoder()
+        let data = try encoder.encode(deletedPuffs)
+
+        // Decode from JSON
+        let decoder = JSONDecoder()
+        let decoded = try decoder.decode([DeletedPuff].self, from: data)
+
+        // Verify count matches
+        #expect(decoded.count == 2)
+
+        // Verify IDs match
+        #expect(decoded[0].id == deletedPuffs[0].id)
+        #expect(decoded[1].id == deletedPuffs[1].id)
+    }
+
+    // MARK: - Equatable Tests
+
+    /// Tests that two DeletedPuffs with the same data are equal.
+    @Test func deletedPuffEquality() async throws {
+        let puffID = UUID()
+        let timestamp = Date()
+        let deletedAt = Date()
+
+        let puff1 = Puff(id: puffID, timestamp: timestamp)
+        let puff2 = Puff(id: puffID, timestamp: timestamp)
+
+        let deleted1 = DeletedPuff(puff: puff1, deletedAt: deletedAt)
+        let deleted2 = DeletedPuff(puff: puff2, deletedAt: deletedAt)
+
+        #expect(deleted1 == deleted2)
+    }
+
+    /// Tests that two DeletedPuffs with different data are not equal.
+    @Test func deletedPuffInequality() async throws {
+        let timestamp = Date()
+
+        let puff1 = Puff(timestamp: timestamp)
+        let puff2 = Puff(timestamp: timestamp.addingTimeInterval(3600))
+
+        let deleted1 = DeletedPuff(puff: puff1, deletedAt: timestamp)
+        let deleted2 = DeletedPuff(puff: puff2, deletedAt: timestamp)
+
+        #expect(deleted1 != deleted2)
+    }
+}
+
 // MARK: - Educational Notes
 //
 // **Why use @testable import?**

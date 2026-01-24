@@ -25,6 +25,10 @@ struct HistoryView: View {
     // The $ prefix when passing data creates a binding
     @Binding var puffs: [Puff]
 
+    // @Binding to the deleted puffs array for undo functionality
+    // When a puff is deleted, it's moved here instead of being permanently removed
+    @Binding var deletedPuffs: [DeletedPuff]
+
     // @State stores the currently selected grouping period for filtering
     // Defaults to .day view on each app launch
     // @State is for view-local data that can change over time
@@ -34,6 +38,9 @@ struct HistoryView: View {
     // When set to a non-nil value, the edit sheet is presented
     // Using Puff? (optional) allows us to use .sheet(item:) for automatic presentation
     @State private var puffToEdit: Puff?
+
+    // State variable to control the presentation of the trash view
+    @State private var showingTrash = false
 
     // MARK: - Chart View
 
@@ -202,6 +209,34 @@ struct HistoryView: View {
                 // This is the horizontal button group commonly used for filters
                 .pickerStyle(.segmented)
             }
+
+            // Trash button to view and restore deleted puffs
+            // Shows badge with count when trash is not empty
+            ToolbarItem(placement: .topBarTrailing) {
+                Button {
+                    showingTrash = true
+                } label: {
+                    // Show trash icon with badge if there are deleted items
+                    if deletedPuffs.isEmpty {
+                        Label("Trash", systemImage: "trash")
+                    } else {
+                        // Badge overlay shows count of recoverable items
+                        ZStack(alignment: .topTrailing) {
+                            Image(systemName: "trash")
+                            if deletedPuffs.count > 0 {
+                                Text("\(deletedPuffs.count)")
+                                    .font(.caption2)
+                                    .fontWeight(.bold)
+                                    .foregroundColor(.white)
+                                    .padding(4)
+                                    .background(Color.red)
+                                    .clipShape(Circle())
+                                    .offset(x: 8, y: -8)
+                            }
+                        }
+                    }
+                }
+            }
         }
         // Sheet presentation for editing a puff
         // .sheet(item:) automatically presents when puffToEdit becomes non-nil
@@ -210,6 +245,11 @@ struct HistoryView: View {
             EditPuffView(originalPuff: puff) { editedPuff in
                 updatePuff(editedPuff)
             }
+        }
+        // Sheet presentation for the trash view
+        // Shows deleted puffs that can be restored within 24 hours
+        .sheet(isPresented: $showingTrash) {
+            TrashView(puffs: $puffs, deletedPuffs: $deletedPuffs)
         }
     }
 
@@ -284,18 +324,27 @@ struct HistoryView: View {
         puffToEdit = nil
     }
 
-    /// Deletes a puff from the array.
+    /// Moves a puff to the trash for potential recovery.
     ///
-    /// This method removes the puff with the matching ID from the puffs array.
-    /// The deletion propagates through the @Binding to ContentView, where the
-    /// onChange modifier will automatically persist the change to UserDefaults.
+    /// Instead of permanently deleting the puff, this method implements a "soft delete"
+    /// by moving the puff to the deletedPuffs array. The puff can be restored within
+    /// 24 hours, after which it will be automatically purged.
     ///
-    /// Groups and charts automatically update via SwiftUI's reactivity system.
-    /// If this is the last puff in a group, the entire section will disappear.
+    /// This provides an undo mechanism for accidental deletions, a common UX pattern
+    /// in modern applications.
     ///
-    /// - Parameter puff: The puff to delete
+    /// The changes propagate through @Binding to ContentView, where onChange modifiers
+    /// automatically persist both arrays to UserDefaults.
+    ///
+    /// - Parameter puff: The puff to move to trash
     private func deletePuff(_ puff: Puff) {
-        // Remove all puffs with this ID (should only be one due to UUID uniqueness)
+        // Create a deleted puff entry with current timestamp
+        let deletedPuff = DeletedPuff(puff: puff)
+
+        // Add to trash
+        deletedPuffs.append(deletedPuff)
+
+        // Remove from active puffs (should only be one due to UUID uniqueness)
         puffs.removeAll { $0.id == puff.id }
     }
 
@@ -339,9 +388,11 @@ struct HistoryView: View {
             Puff(timestamp: Date().addingTimeInterval(-172800))
         ]
 
+        @State private var sampleDeletedPuffs: [DeletedPuff] = []
+
         var body: some View {
             NavigationStack {
-                HistoryView(puffs: $samplePuffs)
+                HistoryView(puffs: $samplePuffs, deletedPuffs: $sampleDeletedPuffs)
             }
         }
     }

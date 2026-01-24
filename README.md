@@ -28,6 +28,12 @@ Puffwise is designed to provide a better user experience than existing habit-tra
     - Swipe to delete individual puffs
     - Changes auto-save to persistent storage
     - Groups and charts update automatically
+  - **Undo/Trash**: Safety net for accidental deletions ✅
+    - Deleted puffs move to trash instead of permanent removal
+    - 24-hour recovery window to restore deleted puffs
+    - Automatic purge of expired items
+    - Trash accessible from History view with badge count
+    - Swipe to restore or permanently delete individual items
 - **Goal Setting**: Track progress toward daily reduction targets ✅
   - Set custom daily puff goal (1-100 puffs)
   - Persistent storage using @AppStorage
@@ -63,15 +69,17 @@ Puffwise/
 │   ├── ContentView.swift       # Main UI view with NavigationStack
 │   ├── HistoryView.swift       # Historical puff tracking view
 │   ├── EditPuffView.swift      # Edit puff timestamp UI with DatePicker
+│   ├── TrashView.swift         # Trash/undo view for deleted puffs
 │   ├── GoalSettingsView.swift  # Goal settings UI with @AppStorage
 │   ├── Puff.swift              # Data model for puff tracking
+│   ├── DeletedPuff.swift       # Data model for trashed puffs
 │   ├── PuffGrouping.swift      # Data grouping utilities (day/week/month)
 │   ├── StatisticsCalculator.swift  # Statistics calculation (7-day/30-day averages)
 │   ├── StreakCalculator.swift  # Streak calculation logic
 │   ├── Assets.xcassets/        # App icons and colors
 │   └── Preview Content/        # SwiftUI preview assets
 └── PuffwiseTests/
-    └── PuffwiseTests.swift  # Comprehensive test suite (65 tests)
+    └── PuffwiseTests.swift  # Comprehensive test suite (85 tests)
 ```
 
 ## Getting Started
@@ -177,6 +185,18 @@ The test suite uses Swift Testing framework (Swift 5.9+) with comprehensive cove
   - StreakInfo model properties and Equatable conformance
   - Impact of edit/delete operations on streaks
 
-**Total: 65 tests, all passing**
+- **Undo/Trash Tests** (20 tests): Trash and recovery functionality
+  - DeletedPuff model creation and expiry logic
+  - 24-hour expiry calculation (exact, before, after thresholds)
+  - Time until expiry calculations
+  - Formatted time remaining strings
+  - Original puff ID preservation
+  - Auto-purge mechanism (expired vs non-expired filtering)
+  - Empty array and edge case handling
+  - Codable conformance for persistence
+  - Array encoding/decoding
+  - Equatable conformance
+
+**Total: 85 tests, all passing**
 
 The tests use Swift Testing framework (introduced in Swift 5.9), which provides better error messages, native async/await support, and more Swift-native syntax than traditional XCTest.

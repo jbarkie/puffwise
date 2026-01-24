@@ -1972,8 +1972,21 @@ struct UndoTrashTests {
 
     // MARK: - Equatable Tests
 
-    /// Tests that two DeletedPuffs with the same data are equal.
-    @Test func deletedPuffEquality() async throws {
+    /// Tests that a DeletedPuff is equal to itself.
+    @Test func deletedPuffEqualityToSelf() async throws {
+        let puff = Puff(timestamp: Date())
+        let deletedPuff = DeletedPuff(puff: puff, deletedAt: Date())
+
+        // A DeletedPuff should equal itself
+        #expect(deletedPuff == deletedPuff)
+    }
+
+    /// Tests that two separately created DeletedPuffs are not equal.
+    ///
+    /// Even if they wrap the same puff and have the same deletedAt timestamp,
+    /// they should be different because each deletion gets a unique ID.
+    /// This prevents SwiftUI tracking issues when items are deleted multiple times.
+    @Test func separatelyCreatedDeletedPuffsAreNotEqual() async throws {
         let puffID = UUID()
         let timestamp = Date()
         let deletedAt = Date()
@@ -1984,7 +1997,8 @@ struct UndoTrashTests {
         let deleted1 = DeletedPuff(puff: puff1, deletedAt: deletedAt)
         let deleted2 = DeletedPuff(puff: puff2, deletedAt: deletedAt)
 
-        #expect(deleted1 == deleted2)
+        // Should NOT be equal because they have different deletion IDs
+        #expect(deleted1 != deleted2)
     }
 
     /// Tests that two DeletedPuffs with different data are not equal.

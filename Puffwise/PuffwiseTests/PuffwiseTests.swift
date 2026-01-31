@@ -2221,6 +2221,182 @@ struct CSVExportTests {
     }
 }
 
+// MARK: - CSV File I/O Tests
+
+/// Test suite for CSV file writing and reading operations.
+///
+/// **What we're testing:**
+/// These integration tests verify that CSV export works correctly at the file system level,
+/// including file creation, UTF-8 encoding, and content integrity.
+struct CSVFileIOTests {
+
+    // MARK: - Test: File Creation
+
+    /// Tests that a CSV file can be created in the temp directory.
+    @Test func csvFileCanBeCreatedInTempDirectory() async throws {
+        let puffs = [Puff(timestamp: Date())]
+        let csvContent = puffs.exportToCSV(dailyGoal: 10)
+        let filename = [Puff].exportFilename()
+        let tempURL = FileManager.default.temporaryDirectory.appendingPathComponent(filename)
+
+        // Clean up any existing file first
+        try? FileManager.default.removeItem(at: tempURL)
+
+        // Write the file
+        try csvContent.write(to: tempURL, atomically: true, encoding: .utf8)
+
+        // Verify file exists
+        #expect(FileManager.default.fileExists(atPath: tempURL.path))
+
+        // Clean up
+        try? FileManager.default.removeItem(at: tempURL)
+    }
+
+    // MARK: - Test: UTF-8 Encoding
+
+    /// Tests that the CSV file is written with valid UTF-8 encoding.
+    @Test func csvFileHasValidUTF8Encoding() async throws {
+        let puffs = [Puff(timestamp: Date())]
+        let csvContent = puffs.exportToCSV(dailyGoal: 10)
+        let filename = "test_utf8_\(UUID().uuidString).csv"
+        let tempURL = FileManager.default.temporaryDirectory.appendingPathComponent(filename)
+
+        // Write the file
+        try csvContent.write(to: tempURL, atomically: true, encoding: .utf8)
+
+        // Read raw data and verify it can be decoded as UTF-8
+        let data = try Data(contentsOf: tempURL)
+        let decodedString = String(data: data, encoding: .utf8)
+
+        #expect(decodedString != nil, "File should be valid UTF-8")
+        #expect(decodedString == csvContent, "Decoded content should match original")
+
+        // Clean up
+        try? FileManager.default.removeItem(at: tempURL)
+    }
+
+    // MARK: - Test: File Readability
+
+    /// Tests that the CSV file can be read back with correct content.
+    @Test func csvFileCanBeReadBack() async throws {
+        let calendar = Calendar.current
+        let date = calendar.date(from: DateComponents(year: 2026, month: 1, day: 15, hour: 14, minute: 30))!
+        let puffs = [Puff(timestamp: date)]
+        let csvContent = puffs.exportToCSV(dailyGoal: 10)
+        let filename = "test_read_\(UUID().uuidString).csv"
+        let tempURL = FileManager.default.temporaryDirectory.appendingPathComponent(filename)
+
+        // Write the file
+        try csvContent.write(to: tempURL, atomically: true, encoding: .utf8)
+
+        // Read it back using String initializer
+        let readContent = try String(contentsOf: tempURL, encoding: .utf8)
+
+        // Verify content matches
+        #expect(readContent == csvContent)
+
+        // Verify key content is present
+        #expect(readContent.contains("# Puffwise Export"))
+        #expect(readContent.contains("timestamp_iso,date,time,day_of_week"))
+
+        // Clean up
+        try? FileManager.default.removeItem(at: tempURL)
+    }
+
+    // MARK: - Test: Multiple Puffs File Content
+
+    /// Tests that a file with multiple puffs has all data rows.
+    @Test func csvFileContainsAllDataRows() async throws {
+        let calendar = Calendar.current
+        let puffs = (0..<5).map { hour in
+            Puff(timestamp: calendar.date(from: DateComponents(
+                year: 2026, month: 1, day: 15, hour: hour
+            ))!)
+        }
+        let csvContent = puffs.exportToCSV(dailyGoal: 10)
+        let filename = "test_rows_\(UUID().uuidString).csv"
+        let tempURL = FileManager.default.temporaryDirectory.appendingPathComponent(filename)
+
+        // Write and read back
+        try csvContent.write(to: tempURL, atomically: true, encoding: .utf8)
+        let readContent = try String(contentsOf: tempURL, encoding: .utf8)
+
+        // Count data rows (excluding comments and header)
+        let lines = readContent.components(separatedBy: "\n")
+        let dataLines = lines.filter { !$0.hasPrefix("#") && !$0.isEmpty && !$0.contains("timestamp_iso") }
+
+        #expect(dataLines.count == 5, "Should have 5 data rows")
+
+        // Clean up
+        try? FileManager.default.removeItem(at: tempURL)
+    }
+
+    // MARK: - Test: File Overwrite
+
+    /// Tests that writing to an existing file overwrites it correctly.
+    @Test func csvFileOverwritesExistingFile() async throws {
+        let filename = "test_overwrite_\(UUID().uuidString).csv"
+        let tempURL = FileManager.default.temporaryDirectory.appendingPathComponent(filename)
+
+        // Write initial content
+        let initialPuffs = [Puff(timestamp: Date())]
+        let initialContent = initialPuffs.exportToCSV(dailyGoal: 5)
+        try initialContent.write(to: tempURL, atomically: true, encoding: .utf8)
+
+        // Verify initial content
+        let firstRead = try String(contentsOf: tempURL, encoding: .utf8)
+        #expect(firstRead.contains("# Daily Goal: 5"))
+
+        // Write new content with different goal
+        let newContent = initialPuffs.exportToCSV(dailyGoal: 20)
+        try newContent.write(to: tempURL, atomically: true, encoding: .utf8)
+
+        // Verify content was overwritten
+        let secondRead = try String(contentsOf: tempURL, encoding: .utf8)
+        #expect(secondRead.contains("# Daily Goal: 20"))
+        #expect(!secondRead.contains("# Daily Goal: 5"))
+
+        // Clean up
+        try? FileManager.default.removeItem(at: tempURL)
+    }
+
+    // MARK: - Test: Empty Puffs File
+
+    /// Tests that an empty puffs array creates a valid file with headers only.
+    @Test func emptyPuffsCreatesValidFile() async throws {
+        let puffs: [Puff] = []
+        let csvContent = puffs.exportToCSV(dailyGoal: 10)
+        let filename = "test_empty_\(UUID().uuidString).csv"
+        let tempURL = FileManager.default.temporaryDirectory.appendingPathComponent(filename)
+
+        // Write and read back
+        try csvContent.write(to: tempURL, atomically: true, encoding: .utf8)
+        let readContent = try String(contentsOf: tempURL, encoding: .utf8)
+
+        // Should have headers but no data rows
+        #expect(readContent.contains("# Puffwise Export"))
+        #expect(readContent.contains("# Total Puffs: 0"))
+        #expect(readContent.contains("timestamp_iso,date,time,day_of_week"))
+
+        let lines = readContent.components(separatedBy: "\n")
+        let dataLines = lines.filter { !$0.hasPrefix("#") && !$0.isEmpty && !$0.contains("timestamp_iso") }
+        #expect(dataLines.isEmpty, "Should have no data rows")
+
+        // Clean up
+        try? FileManager.default.removeItem(at: tempURL)
+    }
+
+    // MARK: - Test: File Extension
+
+    /// Tests that the generated filename has the correct .csv extension.
+    @Test func generatedFilenameHasCSVExtension() async throws {
+        let filename = [Puff].exportFilename()
+        let url = FileManager.default.temporaryDirectory.appendingPathComponent(filename)
+
+        #expect(url.pathExtension == "csv", "File should have .csv extension")
+    }
+}
+
 // MARK: - Educational Notes
 //
 // **Why use @testable import?**

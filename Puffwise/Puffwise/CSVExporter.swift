@@ -5,6 +5,18 @@
 //  Exports puff data to CSV format for backup and analysis.
 //  Uses the same Array extension pattern as StatisticsCalculator.swift.
 //
+//  **Temporary File Lifecycle:**
+//  CSV files are written to the system's temporary directory (FileManager.temporaryDirectory).
+//  Cleanup strategy:
+//  1. Explicit cleanup: GoalSettingsView removes the temp file when the share sheet dismisses
+//  2. Automatic cleanup: iOS periodically purges files from the temp directory
+//  3. App termination: Temp files may be removed when the app is terminated
+//
+//  The temporary directory is appropriate for this use case because:
+//  - Files are short-lived (only needed during the share operation)
+//  - iOS manages disk space automatically
+//  - No sensitive data persistence concerns
+//
 
 import Foundation
 
@@ -17,6 +29,26 @@ extension Array where Element == Puff {
     /// The CSV includes:
     /// - Header with metadata (export date, total puffs, goal, date range)
     /// - Columns: timestamp_iso, date, time, day_of_week
+    ///
+    /// **Example output:**
+    /// ```
+    /// # Puffwise Export
+    /// # Generated: January 31, 2026 at 2:30 PM
+    /// # Total Puffs: 3
+    /// # Daily Goal: 10
+    /// # Date Range: January 30, 2026 - January 31, 2026
+    ///
+    /// timestamp_iso,date,time,day_of_week
+    /// 2026-01-31T14:30:00Z,January 31, 2026,2:30 PM,Saturday
+    /// 2026-01-31T09:15:00Z,January 31, 2026,9:15 AM,Saturday
+    /// 2026-01-30T21:45:00Z,January 30, 2026,9:45 PM,Friday
+    /// ```
+    ///
+    /// **Column descriptions:**
+    /// - `timestamp_iso`: ISO 8601 UTC timestamp for machine processing
+    /// - `date`: Human-readable local date (varies by device locale)
+    /// - `time`: Human-readable local time (varies by device locale)
+    /// - `day_of_week`: Full day name (e.g., "Saturday")
     ///
     /// Puffs are sorted newest-first for easier reading of recent data.
     ///

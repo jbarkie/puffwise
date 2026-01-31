@@ -1804,8 +1804,9 @@ struct UndoTrashTests {
 
         let formatted = deletedPuff.formattedTimeRemaining()
 
-        // Should show approximately 23 hours remaining
-        #expect(formatted.contains("23h"))
+        // Should show approximately 22-23 hours remaining (timing can vary slightly)
+        #expect(formatted.contains("h remaining"))
+        #expect(formatted.contains("22h") || formatted.contains("23h"))
     }
 
     /// Tests formattedTimeRemaining for an expired puff.

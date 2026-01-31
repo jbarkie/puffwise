@@ -72,9 +72,10 @@ Use this concise format for PR descriptions:
 - Streak tracking (consecutive days meeting goal, with flame icon)
 - History view with bar charts and day/week/month filtering
 - Edit (tap) and delete (swipe) individual puffs
+- Undo/trash functionality with 24-hour recovery window
 - Automatic persistence via UserDefaults
 
-**Testing:** 65 tests covering models, grouping logic, goal settings, edit/delete, statistics, and streaks.
+**Testing:** 85 tests covering models, grouping logic, goal settings, edit/delete, statistics, streaks, and undo/trash.
 
 ### Project Structure
 
@@ -84,17 +85,19 @@ Puffwise/
 ├── Puffwise/
 │   ├── PuffwiseApp.swift       # App entry point with @main
 │   ├── ContentView.swift       # Main UI view with NavigationStack and statistics display
-│   ├── HistoryView.swift       # Historical puff tracking view with edit/delete
+│   ├── HistoryView.swift       # Historical puff tracking view with edit/delete and trash access
 │   ├── EditPuffView.swift      # Edit puff timestamp UI with DatePicker
+│   ├── TrashView.swift         # Trash/undo view for deleted puffs with restore functionality
 │   ├── GoalSettingsView.swift  # Goal settings UI with @AppStorage
 │   ├── Puff.swift              # Data model for puff tracking (Codable, Identifiable, Equatable)
+│   ├── DeletedPuff.swift       # Data model for trashed puffs with 24-hour expiry
 │   ├── PuffGrouping.swift      # Data grouping utilities (day/week/month)
 │   ├── StatisticsCalculator.swift  # Statistics calculation (7-day/30-day averages)
 │   ├── StreakCalculator.swift  # Streak calculation logic
 │   ├── Assets.xcassets/        # App icons and colors
 │   └── Preview Content/        # SwiftUI preview assets
 └── PuffwiseTests/
-    └── PuffwiseTests.swift  # Comprehensive test suite (65 tests)
+    └── PuffwiseTests.swift  # Comprehensive test suite (85 tests)
 ```
 
 ### Build Commands

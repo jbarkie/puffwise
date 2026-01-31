@@ -6,8 +6,15 @@ struct ContentView: View {
     // We'll manually save/load from UserDefaults using JSON encoding/decoding.
     @State private var puffs: [Puff] = []
 
+    // @State holds the array of deleted puffs (trash) for 24-hour recovery.
+    // These puffs can be restored by the user or will be auto-purged after expiry.
+    @State private var deletedPuffs: [DeletedPuff] = []
+
     // Key used to store/retrieve puffs from UserDefaults
     private let puffsKey = "puffs"
+
+    // Key used to store/retrieve deleted puffs from UserDefaults
+    private let deletedPuffsKey = "deletedPuffs"
 
     // State variable to control the presentation of the goal settings sheet.
     // When true, the sheet appears; when false, it's dismissed.
@@ -80,6 +87,37 @@ struct ContentView: View {
         } catch {
             // If encoding fails (should be rare), log the error
             print("Failed to save puffs: \(error)")
+        }
+    }
+
+    // Load deleted puffs from UserDefaults
+    // Loads the trash and automatically purges expired items (older than 24 hours).
+    private func loadDeletedPuffs() {
+        guard let data = UserDefaults.standard.data(forKey: deletedPuffsKey) else {
+            // No deleted puffs stored yet
+            return
+        }
+
+        do {
+            let decoded = try JSONDecoder().decode([DeletedPuff].self, from: data)
+            // Auto-purge expired items on load
+            // The onChange modifier will automatically save the purged array
+            deletedPuffs = decoded.purgingExpired()
+        } catch {
+            print("Failed to load deleted puffs: \(error)")
+        }
+    }
+
+    // Save deleted puffs to UserDefaults
+    // Purges expired items before saving to keep storage clean.
+    private func saveDeletedPuffs() {
+        do {
+            // Purge expired items before saving
+            deletedPuffs = deletedPuffs.purgingExpired()
+            let data = try JSONEncoder().encode(deletedPuffs)
+            UserDefaults.standard.set(data, forKey: deletedPuffsKey)
+        } catch {
+            print("Failed to save deleted puffs: \(error)")
         }
     }
 
@@ -233,7 +271,8 @@ struct ContentView: View {
                     // The destination parameter specifies which view to show
                     // This is declarative navigation - we describe where to go, not how
                     // The $ prefix creates a binding from @State, allowing HistoryView to access the data
-                    NavigationLink(destination: HistoryView(puffs: $puffs)) {
+                    // Now passing deletedPuffs binding to enable undo functionality
+                    NavigationLink(destination: HistoryView(puffs: $puffs, deletedPuffs: $deletedPuffs)) {
                         // SF Symbols provide thousands of icons
                         // "chart.bar" is perfect for representing historical data
                         Label("History", systemImage: "chart.bar")
@@ -241,9 +280,10 @@ struct ContentView: View {
                 }
             }
             // .onAppear is called when the view first appears on screen
-            // We use it to load our saved puffs from UserDefaults
+            // We use it to load our saved puffs and deleted puffs from UserDefaults
             .onAppear {
                 loadPuffs()
+                loadDeletedPuffs()
                 updateStreakInfo()
             }
             // .onChange monitors the puffs array for any modifications.
@@ -260,6 +300,11 @@ struct ContentView: View {
             // This ensures streak calculations are accurate when users adjust their goals.
             .onChange(of: dailyPuffGoal) { _, _ in
                 updateStreakInfo()
+            }
+            // .onChange monitors the deleted puffs array for changes.
+            // When items are added, removed, or restored, automatically save to UserDefaults.
+            .onChange(of: deletedPuffs) { _, _ in
+                saveDeletedPuffs()
             }
             // .sheet presents a modal view when the binding variable becomes true.
             // This is the standard SwiftUI pattern for presenting settings, forms, or detail views.

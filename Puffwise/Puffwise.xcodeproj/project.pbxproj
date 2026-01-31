@@ -18,6 +18,8 @@
 		AA0000000000000000000003 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = BB0000000000000000000003 /* Assets.xcassets */; };
 		AA0000000000000000000004 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = BB0000000000000000000005 /* Preview Assets.xcassets */; };
 		B454AEF3383949D6840D8C22 /* EditPuffView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A221399BA4F421FBDBCC080 /* EditPuffView.swift */; };
+	6E00FF352EC82F4500387EDC /* DeletedPuff.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E00FF342EC82F4500387EDB /* DeletedPuff.swift */; };
+	7E00FF372EC82F4500387EDE /* TrashView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7E00FF362EC82F4500387EDD /* TrashView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -44,6 +46,8 @@
 		BB0000000000000000000003 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		BB0000000000000000000005 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		CC0000000000000000000001 /* Puffwise.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Puffwise.app; sourceTree = BUILT_PRODUCTS_DIR; };
+	6E00FF342EC82F4500387EDB /* DeletedPuff.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeletedPuff.swift; sourceTree = "<group>"; };
+	7E00FF362EC82F4500387EDD /* TrashView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrashView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -97,6 +101,8 @@
 				4E00FF272EC82F4500387ED6 /* HistoryView.swift */,
 				3A221399BA4F421FBDBCC080 /* EditPuffView.swift */,
 				4E00FF312EC82F4500387ED8 /* GoalSettingsView.swift */,
+				7E00FF362EC82F4500387EDD /* TrashView.swift */,
+				6E00FF342EC82F4500387EDB /* DeletedPuff.swift */,
 				BB0000000000000000000003 /* Assets.xcassets */,
 				BB0000000000000000000004 /* Preview Content */,
 			);
@@ -233,6 +239,8 @@
 				4EF29CD22F0EF3F7009DF042 /* StreakCalculator.swift in Sources */,
 				B454AEF3383949D6840D8C22 /* EditPuffView.swift in Sources */,
 				4E00FF302EC82F4500387ED8 /* GoalSettingsView.swift in Sources */,
+				7E00FF372EC82F4500387EDE /* TrashView.swift in Sources */,
+				6E00FF352EC82F4500387EDC /* DeletedPuff.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

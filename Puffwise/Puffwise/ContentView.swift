@@ -311,7 +311,8 @@ struct ContentView: View {
             // When showingGoalSettings changes to true, the sheet slides up from the bottom.
             // When dismissed (via the Done button in GoalSettingsView), it automatically sets back to false.
             .sheet(isPresented: $showingGoalSettings) {
-                GoalSettingsView()
+                // Pass the puffs binding to enable CSV export functionality
+                GoalSettingsView(puffs: $puffs)
             }
         }
     }

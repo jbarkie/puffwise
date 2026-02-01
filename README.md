@@ -39,6 +39,11 @@ Puffwise is designed to provide a better user experience than existing habit-tra
   - Persistent storage using @AppStorage
   - Settings accessible via toolbar gear icon
   - Progress display showing "X of Y puffs"
+- **Data Export**: Export puff history for backup and analysis ✅
+  - CSV format compatible with spreadsheet apps
+  - Includes metadata (export date, total puffs, goal, date range)
+  - RFC 4180 compliant CSV formatting
+  - System share sheet integration for saving/sharing
 - **Statistics Summary**: Track trends over time ✅
   - 7-day and 30-day puff averages
   - Displayed on main screen below goal progress
@@ -76,10 +81,11 @@ Puffwise/
 │   ├── PuffGrouping.swift      # Data grouping utilities (day/week/month)
 │   ├── StatisticsCalculator.swift  # Statistics calculation (7-day/30-day averages)
 │   ├── StreakCalculator.swift  # Streak calculation logic
+│   ├── CSVExporter.swift       # CSV export for data backup
 │   ├── Assets.xcassets/        # App icons and colors
 │   └── Preview Content/        # SwiftUI preview assets
 └── PuffwiseTests/
-    └── PuffwiseTests.swift  # Comprehensive test suite (85 tests)
+    └── PuffwiseTests.swift  # Comprehensive test suite (98 tests)
 ```
 
 ## Getting Started
@@ -197,6 +203,18 @@ The test suite uses Swift Testing framework (Swift 5.9+) with comprehensive cove
   - Array encoding/decoding
   - Equatable conformance
 
-**Total: 85 tests, all passing**
+- **CSV Export Tests** (13 tests): Export functionality
+  - Empty array and single puff export
+  - Newest-first sorting
+  - ISO 8601 timestamp format
+  - Header metadata (total puffs, goal, date range)
+  - Filename generation with date
+  - Column headers and structure
+  - Large number formatting (comma separators)
+  - Day of week inclusion
+  - RFC 4180 CSV compliance (quoted fields with commas)
+  - File I/O (temp file creation, content verification, UTF-8 encoding)
+
+**Total: 98 tests, all passing**
 
 The tests use Swift Testing framework (introduced in Swift 5.9), which provides better error messages, native async/await support, and more Swift-native syntax than traditional XCTest.

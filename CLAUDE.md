@@ -73,9 +73,10 @@ Use this concise format for PR descriptions:
 - History view with bar charts and day/week/month filtering
 - Edit (tap) and delete (swipe) individual puffs
 - Undo/trash functionality with 24-hour recovery window
+- CSV export for data backup and analysis
 - Automatic persistence via UserDefaults
 
-**Testing:** 85 tests covering models, grouping logic, goal settings, edit/delete, statistics, streaks, and undo/trash.
+**Testing:** 98 tests covering models, grouping logic, goal settings, edit/delete, statistics, streaks, undo/trash, and CSV export.
 
 ### Project Structure
 
@@ -94,10 +95,11 @@ Puffwise/
 │   ├── PuffGrouping.swift      # Data grouping utilities (day/week/month)
 │   ├── StatisticsCalculator.swift  # Statistics calculation (7-day/30-day averages)
 │   ├── StreakCalculator.swift  # Streak calculation logic
+│   ├── CSVExporter.swift       # CSV export for data backup
 │   ├── Assets.xcassets/        # App icons and colors
 │   └── Preview Content/        # SwiftUI preview assets
 └── PuffwiseTests/
-    └── PuffwiseTests.swift  # Comprehensive test suite (85 tests)
+    └── PuffwiseTests.swift  # Comprehensive test suite (98 tests)
 ```
 
 ### Build Commands
@@ -126,6 +128,5 @@ open Puffwise.xcodeproj
 
 - Time-of-day insights (which hours have most puffs)
 - Weekly/monthly goal view
-- Simple CSV export
 - Advanced chart features (trend lines, annotations)
 - Milestone tracking and achievement notifications

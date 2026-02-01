@@ -2016,6 +2016,365 @@ struct UndoTrashTests {
     }
 }
 
+// MARK: - CSV Export Tests
+
+/// Test suite for CSV export functionality.
+///
+/// **What we're testing:**
+/// The CSVExporter generates CSV files for backup and analysis.
+/// These tests verify the export format, sorting, and metadata handling.
+struct CSVExportTests {
+
+    // MARK: - Test: Empty Array
+
+    /// Tests that exporting an empty array returns only the header.
+    @Test func emptyArrayReturnsHeaderOnly() async throws {
+        let puffs: [Puff] = []
+        let csv = puffs.exportToCSV(dailyGoal: 10)
+
+        // Should contain header metadata
+        #expect(csv.contains("# Puffwise Export"))
+        #expect(csv.contains("# Total Puffs: 0"))
+        #expect(csv.contains("# Daily Goal: 10"))
+        #expect(csv.contains("# Date Range: No data"))
+
+        // Should contain column headers
+        #expect(csv.contains("timestamp_iso,date,time,day_of_week"))
+
+        // Should have no data rows (only metadata and header)
+        let lines = csv.components(separatedBy: "\n")
+        let dataLines = lines.filter { !$0.hasPrefix("#") && !$0.isEmpty && !$0.contains("timestamp_iso") }
+        #expect(dataLines.isEmpty)
+    }
+
+    // MARK: - Test: Single Puff
+
+    /// Tests that exporting a single puff generates valid CSV.
+    @Test func singlePuffGeneratesValidCSV() async throws {
+        let calendar = Calendar.current
+        let date = calendar.date(from: DateComponents(year: 2026, month: 1, day: 15, hour: 14, minute: 30))!
+        let puffs = [Puff(timestamp: date)]
+
+        let csv = puffs.exportToCSV(dailyGoal: 10)
+
+        // Should contain header metadata
+        #expect(csv.contains("# Total Puffs: 1"))
+        #expect(csv.contains("# Daily Goal: 10"))
+
+        // Should contain the data row
+        #expect(csv.contains("2026-01-15"))
+        #expect(csv.contains("Thursday"))  // January 15, 2026 is a Thursday
+
+        // Should have exactly 1 data row
+        let lines = csv.components(separatedBy: "\n")
+        let dataLines = lines.filter { !$0.hasPrefix("#") && !$0.isEmpty && !$0.contains("timestamp_iso") }
+        #expect(dataLines.count == 1)
+    }
+
+    // MARK: - Test: Sorting
+
+    /// Tests that multiple puffs are sorted newest-first.
+    @Test func multiplePuffsAreSortedNewestFirst() async throws {
+        let calendar = Calendar.current
+        let jan1 = calendar.date(from: DateComponents(year: 2026, month: 1, day: 1, hour: 10))!
+        let jan15 = calendar.date(from: DateComponents(year: 2026, month: 1, day: 15, hour: 14))!
+        let jan31 = calendar.date(from: DateComponents(year: 2026, month: 1, day: 31, hour: 9))!
+
+        // Create puffs in random order
+        let puffs = [
+            Puff(timestamp: jan15),  // Middle
+            Puff(timestamp: jan1),   // Oldest
+            Puff(timestamp: jan31)   // Newest
+        ]
+
+        let csv = puffs.exportToCSV(dailyGoal: 10)
+
+        // Get data lines
+        let lines = csv.components(separatedBy: "\n")
+        let dataLines = lines.filter { !$0.hasPrefix("#") && !$0.isEmpty && !$0.contains("timestamp_iso") }
+
+        #expect(dataLines.count == 3)
+
+        // First data line should be newest (Jan 31)
+        #expect(dataLines[0].contains("2026-01-31"))
+        // Second should be middle (Jan 15)
+        #expect(dataLines[1].contains("2026-01-15"))
+        // Third should be oldest (Jan 1)
+        #expect(dataLines[2].contains("2026-01-01"))
+    }
+
+    // MARK: - Test: ISO 8601 Format
+
+    /// Tests that ISO 8601 timestamp format is correct.
+    @Test func iso8601TimestampFormatIsCorrect() async throws {
+        let calendar = Calendar.current
+        // Create a date in UTC to ensure predictable ISO 8601 output
+        var utcCalendar = Calendar.current
+        utcCalendar.timeZone = TimeZone(identifier: "UTC")!
+        let date = utcCalendar.date(from: DateComponents(
+            timeZone: TimeZone(identifier: "UTC"),
+            year: 2026, month: 1, day: 15, hour: 14, minute: 30, second: 0
+        ))!
+
+        let puffs = [Puff(timestamp: date)]
+        let csv = puffs.exportToCSV(dailyGoal: 10)
+
+        // ISO 8601 format should be present
+        #expect(csv.contains("2026-01-15T14:30:00Z"))
+    }
+
+    // MARK: - Test: Header Metadata
+
+    /// Tests that header includes correct metadata.
+    @Test func headerIncludesCorrectMetadata() async throws {
+        let calendar = Calendar.current
+        let date = calendar.date(from: DateComponents(year: 2026, month: 1, day: 15))!
+        let puffs = (0..<5).map { hour in
+            Puff(timestamp: date.addingTimeInterval(Double(hour * 3600)))
+        }
+
+        let csv = puffs.exportToCSV(dailyGoal: 20)
+
+        // Check all metadata lines
+        #expect(csv.contains("# Puffwise Export"))
+        #expect(csv.contains("# Generated:"))
+        #expect(csv.contains("# Total Puffs: 5"))
+        #expect(csv.contains("# Daily Goal: 20"))
+        #expect(csv.contains("# Date Range:"))
+    }
+
+    // MARK: - Test: Date Range
+
+    /// Tests that date range is accurate.
+    @Test func dateRangeIsAccurate() async throws {
+        let calendar = Calendar.current
+        let dec1 = calendar.date(from: DateComponents(year: 2025, month: 12, day: 1))!
+        let jan31 = calendar.date(from: DateComponents(year: 2026, month: 1, day: 31))!
+
+        let puffs = [
+            Puff(timestamp: dec1),
+            Puff(timestamp: jan31)
+        ]
+
+        let csv = puffs.exportToCSV(dailyGoal: 10)
+
+        // Date range should show oldest to newest
+        #expect(csv.contains("December 1, 2025"))
+        #expect(csv.contains("January 31, 2026"))
+    }
+
+    // MARK: - Test: Filename Generation
+
+    /// Tests that the export filename is generated correctly.
+    @Test func filenameGenerationIsCorrect() async throws {
+        let filename = [Puff].exportFilename()
+
+        // Should start with expected prefix
+        #expect(filename.hasPrefix("puffwise_export_"))
+        // Should end with .csv
+        #expect(filename.hasSuffix(".csv"))
+        // Should contain today's date in YYYY-MM-DD format
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "yyyy-MM-dd"
+        let todayString = dateFormatter.string(from: Date())
+        #expect(filename.contains(todayString))
+    }
+
+    // MARK: - Test: Column Headers
+
+    /// Tests that CSV column headers are correct.
+    @Test func columnHeadersAreCorrect() async throws {
+        let puffs: [Puff] = []
+        let csv = puffs.exportToCSV(dailyGoal: 10)
+
+        #expect(csv.contains("timestamp_iso,date,time,day_of_week"))
+    }
+
+    // MARK: - Test: Large Number Formatting
+
+    /// Tests that large puff counts are formatted with commas.
+    @Test func largeNumbersAreFormattedWithCommas() async throws {
+        let now = Date()
+        // Create 1234 puffs
+        let puffs = (0..<1234).map { i in
+            Puff(timestamp: now.addingTimeInterval(Double(i * 60)))
+        }
+
+        let csv = puffs.exportToCSV(dailyGoal: 10)
+
+        // Should format with comma separator
+        #expect(csv.contains("# Total Puffs: 1,234"))
+    }
+
+    // MARK: - Test: Day of Week
+
+    /// Tests that day of week is correctly included.
+    @Test func dayOfWeekIsCorrect() async throws {
+        let calendar = Calendar.current
+        // January 15, 2026 is a Thursday
+        let date = calendar.date(from: DateComponents(year: 2026, month: 1, day: 15, hour: 10))!
+        let puffs = [Puff(timestamp: date)]
+
+        let csv = puffs.exportToCSV(dailyGoal: 10)
+
+        #expect(csv.contains("Thursday"))  // January 15, 2026 is a Thursday
+    }
+
+    // MARK: - Test: CSV Column Structure
+
+    /// Tests that CSV data rows have exactly 4 columns when parsed.
+    ///
+    /// This verifies that fields containing commas (like "January 31, 2026")
+    /// are properly quoted so they don't break CSV parsing.
+    @Test func csvHasCorrectColumnStructure() async throws {
+        let calendar = Calendar.current
+        // Use a date that will have a comma in the long format (e.g., "January 15, 2026")
+        let date = calendar.date(from: DateComponents(year: 2026, month: 1, day: 15, hour: 10))!
+        let puffs = [Puff(timestamp: date)]
+
+        let csv = puffs.exportToCSV(dailyGoal: 10)
+
+        // Get data lines (exclude metadata comments and header)
+        let lines = csv.components(separatedBy: "\n")
+        let dataLines = lines.filter { !$0.hasPrefix("#") && !$0.isEmpty && !$0.contains("timestamp_iso,") }
+
+        #expect(dataLines.count == 1)
+
+        // Parse the CSV line properly (handling quoted fields)
+        let dataLine = dataLines[0]
+        let columns = parseCSVLine(dataLine)
+
+        // Should have exactly 4 columns: timestamp_iso, date, time, day_of_week
+        #expect(columns.count == 4, "Expected 4 columns but got \(columns.count): \(columns)")
+
+        // Verify column contents
+        #expect(columns[0].contains("2026-01-15"))  // ISO timestamp
+        #expect(columns[1].contains("January") && columns[1].contains("2026"))  // Full date
+        #expect(columns[3] == "Thursday")  // Day of week
+    }
+
+    /// Tests that the date field is properly quoted in CSV output.
+    @Test func dateFieldIsQuotedInCSV() async throws {
+        let calendar = Calendar.current
+        let date = calendar.date(from: DateComponents(year: 2026, month: 1, day: 15, hour: 10))!
+        let puffs = [Puff(timestamp: date)]
+
+        let csv = puffs.exportToCSV(dailyGoal: 10)
+
+        // The date field should be quoted because it contains a comma
+        #expect(csv.contains("\"January 15, 2026\"") || csv.contains("\"15 January 2026\""),
+                "Date field should be quoted: \(csv)")
+    }
+
+    // MARK: - Helper: Parse CSV Line
+
+    /// Parses a CSV line respecting quoted fields.
+    ///
+    /// Handles fields that contain commas by respecting double-quote delimiters.
+    private func parseCSVLine(_ line: String) -> [String] {
+        var columns: [String] = []
+        var currentField = ""
+        var insideQuotes = false
+
+        for char in line {
+            if char == "\"" {
+                insideQuotes.toggle()
+            } else if char == "," && !insideQuotes {
+                columns.append(currentField)
+                currentField = ""
+            } else {
+                currentField.append(char)
+            }
+        }
+        columns.append(currentField)  // Add the last field
+
+        return columns
+    }
+}
+
+// MARK: - CSV Export File I/O Tests
+
+/// Test suite for CSV export file operations.
+///
+/// **What we're testing:**
+/// These tests verify that CSV content can be correctly written to and read from
+/// temporary files, ensuring the export functionality works end-to-end.
+struct CSVExportFileIOTests {
+
+    // MARK: - Test: Temp File Creation
+
+    /// Tests that CSV export creates a valid temporary file.
+    @Test func exportCreatesValidTempFile() async throws {
+        let calendar = Calendar.current
+        let date = calendar.date(from: DateComponents(year: 2026, month: 1, day: 15, hour: 10))!
+        let puffs = [Puff(timestamp: date)]
+
+        let csvContent = puffs.exportToCSV(dailyGoal: 10)
+        let filename = [Puff].exportFilename()
+        let tempURL = FileManager.default.temporaryDirectory
+            .appendingPathComponent(filename)
+
+        // Write to temp file
+        try csvContent.write(to: tempURL, atomically: true, encoding: .utf8)
+
+        // Verify file exists
+        #expect(FileManager.default.fileExists(atPath: tempURL.path))
+
+        // Cleanup
+        try? FileManager.default.removeItem(at: tempURL)
+    }
+
+    // MARK: - Test: File Content Verification
+
+    /// Tests that file content matches the exported CSV string.
+    @Test func exportedFileHasCorrectContent() async throws {
+        let calendar = Calendar.current
+        let date = calendar.date(from: DateComponents(year: 2026, month: 1, day: 15, hour: 14, minute: 30))!
+        let puffs = [Puff(timestamp: date)]
+
+        let csvContent = puffs.exportToCSV(dailyGoal: 10)
+        let filename = "test_export_content.csv"
+        let tempURL = FileManager.default.temporaryDirectory
+            .appendingPathComponent(filename)
+
+        // Write to temp file
+        try csvContent.write(to: tempURL, atomically: true, encoding: .utf8)
+
+        // Read back and verify content matches
+        let readContent = try String(contentsOf: tempURL, encoding: .utf8)
+        #expect(readContent == csvContent)
+
+        // Cleanup
+        try? FileManager.default.removeItem(at: tempURL)
+    }
+
+    // MARK: - Test: UTF-8 Encoding
+
+    /// Tests that the exported file uses UTF-8 encoding.
+    @Test func exportedFileHasUTF8Encoding() async throws {
+        let calendar = Calendar.current
+        let date = calendar.date(from: DateComponents(year: 2026, month: 1, day: 15, hour: 10))!
+        let puffs = [Puff(timestamp: date)]
+
+        let csvContent = puffs.exportToCSV(dailyGoal: 10)
+        let filename = "test_export_encoding.csv"
+        let tempURL = FileManager.default.temporaryDirectory
+            .appendingPathComponent(filename)
+
+        // Write with UTF-8 encoding
+        try csvContent.write(to: tempURL, atomically: true, encoding: .utf8)
+
+        // Read as raw data and verify UTF-8 encoding
+        let data = try Data(contentsOf: tempURL)
+        let decodedString = String(data: data, encoding: .utf8)
+        #expect(decodedString != nil)
+        #expect(decodedString == csvContent)
+
+        // Cleanup
+        try? FileManager.default.removeItem(at: tempURL)
+    }
+}
+
 // MARK: - Educational Notes
 //
 // **Why use @testable import?**

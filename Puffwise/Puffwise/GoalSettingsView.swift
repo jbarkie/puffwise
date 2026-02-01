@@ -32,20 +32,35 @@ struct GoalSettingsView: View {
     // This replaces the older @Environment(\.presentationMode) pattern.
     @Environment(\.dismiss) private var dismiss
 
-    // Computed property that generates a file URL for CSV export.
-    // ShareLink with a URL preserves the filename and extension,
-    // unlike passing a String directly which loses the .csv extension.
-    // The file is created in the temporary directory and will be cleaned up by iOS.
-    private var exportFileURL: URL {
+    // State for CSV export error handling.
+    // When file writing fails, we show an alert instead of silently failing.
+    @State private var showingExportError = false
+    @State private var exportErrorMessage = ""
+
+    // Cached URL for the export file.
+    // We prepare the file before ShareLink is tapped to ensure it's ready.
+    // Note: Files in temporaryDirectory are automatically cleaned up by iOS
+    // when the system needs space or during device restarts.
+    @State private var cachedExportURL: URL?
+
+    /// Prepares the CSV export file for sharing.
+    ///
+    /// This function generates the CSV content and writes it to a temporary file.
+    /// If writing fails, it sets the error state to show an alert to the user.
+    private func prepareExportFile() {
         let csvContent = puffs.exportToCSV(dailyGoal: dailyPuffGoal)
         let filename = [Puff].exportFilename()
-        let tempURL = FileManager.default.temporaryDirectory.appendingPathComponent(filename)
+        let tempURL = FileManager.default.temporaryDirectory
+            .appendingPathComponent(filename)
 
-        // Write CSV content to temporary file
-        // If this fails, we fall back to an empty file (edge case)
-        try? csvContent.write(to: tempURL, atomically: true, encoding: .utf8)
-
-        return tempURL
+        do {
+            try csvContent.write(to: tempURL, atomically: true, encoding: .utf8)
+            cachedExportURL = tempURL
+        } catch {
+            cachedExportURL = nil
+            exportErrorMessage = error.localizedDescription
+            showingExportError = true
+        }
     }
 
     var body: some View {
@@ -95,17 +110,29 @@ struct GoalSettingsView: View {
                 // all standard iOS sharing destinations (Files, AirDrop, Mail, etc.).
                 // Using a file URL (instead of raw String) preserves the .csv filename extension.
                 Section {
-                    ShareLink(
-                        item: exportFileURL,
-                        preview: SharePreview(
-                            "Puffwise Export",
-                            image: Image(systemName: "chart.bar.doc.horizontal")
-                        )
-                    ) {
-                        Label("Export Data", systemImage: "square.and.arrow.up")
+                    // Only show ShareLink when we have a valid cached URL.
+                    // If file preparation failed, cachedExportURL will be nil.
+                    if let exportURL = cachedExportURL {
+                        ShareLink(
+                            item: exportURL,
+                            preview: SharePreview(
+                                "Puffwise Export",
+                                image: Image(systemName: "chart.bar.doc.horizontal")
+                            )
+                        ) {
+                            Label("Export Data", systemImage: "square.and.arrow.up")
+                        }
+                        // Disable when there's no data to export
+                        .disabled(puffs.isEmpty)
+                    } else {
+                        // Show disabled button if file preparation failed
+                        Button {
+                            prepareExportFile()
+                        } label: {
+                            Label("Export Data", systemImage: "square.and.arrow.up")
+                        }
+                        .disabled(puffs.isEmpty)
                     }
-                    // Disable when there's no data to export
-                    .disabled(puffs.isEmpty)
                 } header: {
                     Text("Data")
                 } footer: {
@@ -116,6 +143,18 @@ struct GoalSettingsView: View {
             .navigationTitle("Goal Settings")
             // .inline makes the title smaller and appear on the same line as toolbar items
             .navigationBarTitleDisplayMode(.inline)
+            // Prepare the export file when the view appears or when puffs change.
+            // .task runs an async operation when the view appears; using `id:` makes it
+            // re-run whenever that value changes (similar to .onChange but with async support).
+            .task(id: puffs.count) {
+                prepareExportFile()
+            }
+            // Alert shown when CSV file creation fails
+            .alert("Export Failed", isPresented: $showingExportError) {
+                Button("OK", role: .cancel) { }
+            } message: {
+                Text("Could not create export file: \(exportErrorMessage)")
+            }
             .toolbar {
                 // ToolbarItem lets us add buttons and controls to the navigation bar
                 // .topBarTrailing places the item in the top-right (leading would be top-left)

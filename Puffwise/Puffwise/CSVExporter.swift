@@ -20,6 +20,22 @@ extension Array where Element == Puff {
     ///
     /// Puffs are sorted newest-first for easier reading of recent data.
     ///
+    /// Example output:
+    /// ```
+    /// # Puffwise Export
+    /// # Generated: January 31, 2026 at 2:30 PM
+    /// # Total Puffs: 3
+    /// # Daily Goal: 10
+    /// # Date Range: January 30, 2026 - January 31, 2026
+    ///
+    /// timestamp_iso,date,time,day_of_week
+    /// 2026-01-31T14:30:00Z,"January 31, 2026",2:30 PM,Saturday
+    /// 2026-01-31T09:15:00Z,"January 31, 2026",9:15 AM,Saturday
+    /// 2026-01-30T18:45:00Z,"January 30, 2026",6:45 PM,Friday
+    /// ```
+    ///
+    /// Note: Fields containing commas are quoted per RFC 4180 CSV standard.
+    ///
     /// - Parameter dailyGoal: The user's current daily puff goal
     /// - Returns: A CSV string ready for export
     func exportToCSV(dailyGoal: Int) -> String {
@@ -42,7 +58,7 @@ extension Array where Element == Puff {
         // Data rows
         for puff in sortedPuffs {
             let iso8601 = Self.iso8601Formatter.string(from: puff.timestamp)
-            let date = Self.dateFormatter.string(from: puff.timestamp)
+            let date = Self.csvEscape(Self.dateFormatter.string(from: puff.timestamp))
             let time = Self.timeFormatter.string(from: puff.timestamp)
             let dayOfWeek = Self.dayOfWeekFormatter.string(from: puff.timestamp)
 
@@ -63,6 +79,22 @@ extension Array where Element == Puff {
     }
 
     // MARK: - Private Helpers
+
+    /// Escapes a string for CSV format per RFC 4180.
+    ///
+    /// If the string contains commas, quotes, or newlines, it will be wrapped
+    /// in double quotes. Any existing double quotes are escaped by doubling them.
+    ///
+    /// - Parameter field: The string to escape
+    /// - Returns: A CSV-safe string
+    private static func csvEscape(_ field: String) -> String {
+        let needsQuoting = field.contains(",") || field.contains("\"") || field.contains("\n")
+        if needsQuoting {
+            let escaped = field.replacingOccurrences(of: "\"", with: "\"\"")
+            return "\"\(escaped)\""
+        }
+        return field
+    }
 
     /// Generates a human-readable date range string.
     ///

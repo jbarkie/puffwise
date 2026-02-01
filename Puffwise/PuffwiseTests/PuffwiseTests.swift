@@ -2219,6 +2219,160 @@ struct CSVExportTests {
 
         #expect(csv.contains("Thursday"))  // January 15, 2026 is a Thursday
     }
+
+    // MARK: - Test: CSV Column Structure
+
+    /// Tests that CSV data rows have exactly 4 columns when parsed.
+    ///
+    /// This verifies that fields containing commas (like "January 31, 2026")
+    /// are properly quoted so they don't break CSV parsing.
+    @Test func csvHasCorrectColumnStructure() async throws {
+        let calendar = Calendar.current
+        // Use a date that will have a comma in the long format (e.g., "January 15, 2026")
+        let date = calendar.date(from: DateComponents(year: 2026, month: 1, day: 15, hour: 10))!
+        let puffs = [Puff(timestamp: date)]
+
+        let csv = puffs.exportToCSV(dailyGoal: 10)
+
+        // Get data lines (exclude metadata comments and header)
+        let lines = csv.components(separatedBy: "\n")
+        let dataLines = lines.filter { !$0.hasPrefix("#") && !$0.isEmpty && !$0.contains("timestamp_iso,") }
+
+        #expect(dataLines.count == 1)
+
+        // Parse the CSV line properly (handling quoted fields)
+        let dataLine = dataLines[0]
+        let columns = parseCSVLine(dataLine)
+
+        // Should have exactly 4 columns: timestamp_iso, date, time, day_of_week
+        #expect(columns.count == 4, "Expected 4 columns but got \(columns.count): \(columns)")
+
+        // Verify column contents
+        #expect(columns[0].contains("2026-01-15"))  // ISO timestamp
+        #expect(columns[1].contains("January") && columns[1].contains("2026"))  // Full date
+        #expect(columns[3] == "Thursday")  // Day of week
+    }
+
+    /// Tests that the date field is properly quoted in CSV output.
+    @Test func dateFieldIsQuotedInCSV() async throws {
+        let calendar = Calendar.current
+        let date = calendar.date(from: DateComponents(year: 2026, month: 1, day: 15, hour: 10))!
+        let puffs = [Puff(timestamp: date)]
+
+        let csv = puffs.exportToCSV(dailyGoal: 10)
+
+        // The date field should be quoted because it contains a comma
+        #expect(csv.contains("\"January 15, 2026\"") || csv.contains("\"15 January 2026\""),
+                "Date field should be quoted: \(csv)")
+    }
+
+    // MARK: - Helper: Parse CSV Line
+
+    /// Parses a CSV line respecting quoted fields.
+    ///
+    /// Handles fields that contain commas by respecting double-quote delimiters.
+    private func parseCSVLine(_ line: String) -> [String] {
+        var columns: [String] = []
+        var currentField = ""
+        var insideQuotes = false
+
+        for char in line {
+            if char == "\"" {
+                insideQuotes.toggle()
+            } else if char == "," && !insideQuotes {
+                columns.append(currentField)
+                currentField = ""
+            } else {
+                currentField.append(char)
+            }
+        }
+        columns.append(currentField)  // Add the last field
+
+        return columns
+    }
+}
+
+// MARK: - CSV Export File I/O Tests
+
+/// Test suite for CSV export file operations.
+///
+/// **What we're testing:**
+/// These tests verify that CSV content can be correctly written to and read from
+/// temporary files, ensuring the export functionality works end-to-end.
+struct CSVExportFileIOTests {
+
+    // MARK: - Test: Temp File Creation
+
+    /// Tests that CSV export creates a valid temporary file.
+    @Test func exportCreatesValidTempFile() async throws {
+        let calendar = Calendar.current
+        let date = calendar.date(from: DateComponents(year: 2026, month: 1, day: 15, hour: 10))!
+        let puffs = [Puff(timestamp: date)]
+
+        let csvContent = puffs.exportToCSV(dailyGoal: 10)
+        let filename = [Puff].exportFilename()
+        let tempURL = FileManager.default.temporaryDirectory
+            .appendingPathComponent(filename)
+
+        // Write to temp file
+        try csvContent.write(to: tempURL, atomically: true, encoding: .utf8)
+
+        // Verify file exists
+        #expect(FileManager.default.fileExists(atPath: tempURL.path))
+
+        // Cleanup
+        try? FileManager.default.removeItem(at: tempURL)
+    }
+
+    // MARK: - Test: File Content Verification
+
+    /// Tests that file content matches the exported CSV string.
+    @Test func exportedFileHasCorrectContent() async throws {
+        let calendar = Calendar.current
+        let date = calendar.date(from: DateComponents(year: 2026, month: 1, day: 15, hour: 14, minute: 30))!
+        let puffs = [Puff(timestamp: date)]
+
+        let csvContent = puffs.exportToCSV(dailyGoal: 10)
+        let filename = "test_export_content.csv"
+        let tempURL = FileManager.default.temporaryDirectory
+            .appendingPathComponent(filename)
+
+        // Write to temp file
+        try csvContent.write(to: tempURL, atomically: true, encoding: .utf8)
+
+        // Read back and verify content matches
+        let readContent = try String(contentsOf: tempURL, encoding: .utf8)
+        #expect(readContent == csvContent)
+
+        // Cleanup
+        try? FileManager.default.removeItem(at: tempURL)
+    }
+
+    // MARK: - Test: UTF-8 Encoding
+
+    /// Tests that the exported file uses UTF-8 encoding.
+    @Test func exportedFileHasUTF8Encoding() async throws {
+        let calendar = Calendar.current
+        let date = calendar.date(from: DateComponents(year: 2026, month: 1, day: 15, hour: 10))!
+        let puffs = [Puff(timestamp: date)]
+
+        let csvContent = puffs.exportToCSV(dailyGoal: 10)
+        let filename = "test_export_encoding.csv"
+        let tempURL = FileManager.default.temporaryDirectory
+            .appendingPathComponent(filename)
+
+        // Write with UTF-8 encoding
+        try csvContent.write(to: tempURL, atomically: true, encoding: .utf8)
+
+        // Read as raw data and verify UTF-8 encoding
+        let data = try Data(contentsOf: tempURL)
+        let decodedString = String(data: data, encoding: .utf8)
+        #expect(decodedString != nil)
+        #expect(decodedString == csvContent)
+
+        // Cleanup
+        try? FileManager.default.removeItem(at: tempURL)
+    }
 }
 
 // MARK: - Educational Notes

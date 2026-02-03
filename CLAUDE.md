@@ -74,9 +74,10 @@ Use this concise format for PR descriptions:
 - Edit (tap) and delete (swipe) individual puffs
 - Undo/trash functionality with 24-hour recovery window
 - CSV export for data backup and analysis
+- Daily reminder notifications with configurable time
 - Automatic persistence via UserDefaults
 
-**Testing:** 98 tests covering models, grouping logic, goal settings, edit/delete, statistics, streaks, undo/trash, and CSV export.
+**Testing:** 109 tests covering models, grouping logic, goal settings, edit/delete, statistics, streaks, undo/trash, CSV export, and notifications.
 
 ### Project Structure
 
@@ -96,6 +97,7 @@ Puffwise/
 │   ├── StatisticsCalculator.swift  # Statistics calculation (7-day/30-day averages)
 │   ├── StreakCalculator.swift  # Streak calculation logic
 │   ├── CSVExporter.swift       # CSV export for data backup
+│   ├── NotificationManager.swift   # Daily reminder notification scheduling
 │   ├── Assets.xcassets/        # App icons and colors
 │   └── Preview Content/        # SwiftUI preview assets
 └── PuffwiseTests/

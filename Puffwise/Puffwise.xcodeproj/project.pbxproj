@@ -21,6 +21,7 @@
 	6E00FF352EC82F4500387EDC /* DeletedPuff.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E00FF342EC82F4500387EDB /* DeletedPuff.swift */; };
 	7E00FF372EC82F4500387EDE /* TrashView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7E00FF362EC82F4500387EDD /* TrashView.swift */; };
 	8E00FF392EC82F4500387EE0 /* CSVExporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8E00FF382EC82F4500387EDF /* CSVExporter.swift */; };
+	9E00FF3B2EC82F4500387EE2 /* NotificationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E00FF3A2EC82F4500387EE1 /* NotificationManager.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -50,6 +51,7 @@
 	6E00FF342EC82F4500387EDB /* DeletedPuff.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeletedPuff.swift; sourceTree = "<group>"; };
 	7E00FF362EC82F4500387EDD /* TrashView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrashView.swift; sourceTree = "<group>"; };
 	8E00FF382EC82F4500387EDF /* CSVExporter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CSVExporter.swift; sourceTree = "<group>"; };
+	9E00FF3A2EC82F4500387EE1 /* NotificationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationManager.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -99,6 +101,7 @@
 				4E00FF292EC82F4500387ED7 /* PuffGrouping.swift */,
 				5E00FF322EC82F4500387ED9 /* StatisticsCalculator.swift */,
 				8E00FF382EC82F4500387EDF /* CSVExporter.swift */,
+				9E00FF3A2EC82F4500387EE1 /* NotificationManager.swift */,
 				BB0000000000000000000001 /* PuffwiseApp.swift */,
 				BB0000000000000000000002 /* ContentView.swift */,
 				4E00FF272EC82F4500387ED6 /* HistoryView.swift */,
@@ -245,6 +248,7 @@
 				7E00FF372EC82F4500387EDE /* TrashView.swift in Sources */,
 				6E00FF352EC82F4500387EDC /* DeletedPuff.swift in Sources */,
 				8E00FF392EC82F4500387EE0 /* CSVExporter.swift in Sources */,
+				9E00FF3B2EC82F4500387EE2 /* NotificationManager.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

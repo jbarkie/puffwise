@@ -2375,6 +2375,148 @@ struct CSVExportFileIOTests {
     }
 }
 
+// MARK: - NotificationManager Tests
+
+/// Test suite for NotificationManager functionality.
+///
+/// **What we're testing:**
+/// These tests verify that the NotificationManager correctly creates notification content
+/// and trigger configurations. Since actual notification scheduling requires system
+/// permissions and can't be reliably tested in unit tests, we test the components
+/// (content and trigger) rather than the scheduling itself.
+///
+/// **Testing Limitations:**
+/// - Permission requests require user interaction (can't be automated)
+/// - Scheduled notifications are managed by the system
+/// - We use helper methods that expose testable components
+struct NotificationManagerTests {
+
+    // MARK: - Test: Notification Content
+
+    /// Tests that reminder notification content has correct title.
+    ///
+    /// **What this tests:**
+    /// The notification title is the primary text users see in their notification.
+    /// It should be clear and action-oriented.
+    @Test func reminderContentHasCorrectTitle() async throws {
+        let manager = NotificationManager.shared
+        let content = manager.createReminderContent()
+
+        #expect(content.title == "Time to check in")
+    }
+
+    /// Tests that reminder notification content has correct body.
+    ///
+    /// **What this tests:**
+    /// The notification body provides additional context about what action to take.
+    @Test func reminderContentHasCorrectBody() async throws {
+        let manager = NotificationManager.shared
+        let content = manager.createReminderContent()
+
+        #expect(content.body == "How are you doing with your puff goal today?")
+    }
+
+    /// Tests that reminder notification has sound configured.
+    ///
+    /// **What this tests:**
+    /// Notifications should play a sound to get the user's attention.
+    /// The default sound is a standard iOS notification chime.
+    @Test func reminderContentHasSound() async throws {
+        let manager = NotificationManager.shared
+        let content = manager.createReminderContent()
+
+        #expect(content.sound != nil)
+    }
+
+    // MARK: - Test: Trigger Configuration
+
+    /// Tests that daily trigger is configured for the correct hour.
+    ///
+    /// **What this tests:**
+    /// The trigger should fire at the specified hour (e.g., 20 for 8 PM).
+    @Test func dailyTriggerHasCorrectHour() async throws {
+        let manager = NotificationManager.shared
+        let trigger = manager.createDailyTrigger(hour: 14, minute: 30)
+
+        #expect(trigger.dateComponents.hour == 14)
+    }
+
+    /// Tests that daily trigger is configured for the correct minute.
+    ///
+    /// **What this tests:**
+    /// The trigger should fire at the specified minute.
+    @Test func dailyTriggerHasCorrectMinute() async throws {
+        let manager = NotificationManager.shared
+        let trigger = manager.createDailyTrigger(hour: 14, minute: 30)
+
+        #expect(trigger.dateComponents.minute == 30)
+    }
+
+    /// Tests that daily trigger is set to repeat.
+    ///
+    /// **What this tests:**
+    /// Daily reminders should fire every day at the same time,
+    /// so the trigger must have repeats enabled.
+    @Test func dailyTriggerRepeats() async throws {
+        let manager = NotificationManager.shared
+        let trigger = manager.createDailyTrigger(hour: 20, minute: 0)
+
+        #expect(trigger.repeats == true)
+    }
+
+    // MARK: - Test: Trigger Time Variations
+
+    /// Tests trigger creation with morning time (edge case).
+    ///
+    /// **What this tests:**
+    /// Users might set an early morning reminder. Verify hour 0 works correctly.
+    @Test func dailyTriggerMorningTime() async throws {
+        let manager = NotificationManager.shared
+        let trigger = manager.createDailyTrigger(hour: 6, minute: 0)
+
+        #expect(trigger.dateComponents.hour == 6)
+        #expect(trigger.dateComponents.minute == 0)
+    }
+
+    /// Tests trigger creation with evening time (default).
+    ///
+    /// **What this tests:**
+    /// The default reminder time is 8 PM (20:00). Verify this works correctly.
+    @Test func dailyTriggerEveningTime() async throws {
+        let manager = NotificationManager.shared
+        let trigger = manager.createDailyTrigger(hour: 20, minute: 0)
+
+        #expect(trigger.dateComponents.hour == 20)
+        #expect(trigger.dateComponents.minute == 0)
+    }
+
+    /// Tests trigger creation with non-zero minute value.
+    ///
+    /// **What this tests:**
+    /// Users might set reminders at times like 7:45 PM. Verify minute handling.
+    @Test func dailyTriggerWithMinutes() async throws {
+        let manager = NotificationManager.shared
+        let trigger = manager.createDailyTrigger(hour: 19, minute: 45)
+
+        #expect(trigger.dateComponents.hour == 19)
+        #expect(trigger.dateComponents.minute == 45)
+    }
+
+    // MARK: - Test: Notification Identifier
+
+    /// Tests that the daily reminder identifier is a non-empty string.
+    ///
+    /// **What this tests:**
+    /// The identifier is used to manage (cancel/replace) notifications.
+    /// It must be a valid, non-empty string.
+    @Test func dailyReminderIdentifierIsValid() async throws {
+        let identifier = NotificationManager.dailyReminderIdentifier
+
+        #expect(!identifier.isEmpty)
+        #expect(identifier == "dailyPuffReminder")
+    }
+}
+
 // MARK: - Educational Notes
 //
 // **Why use @testable import?**

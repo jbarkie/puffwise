@@ -26,6 +26,12 @@ struct GoalSettingsView: View {
     // Default value (10) is used when the key doesn't exist in UserDefaults (first launch).
     @AppStorage("dailyPuffGoal") private var dailyPuffGoal: Int = 10
 
+    // Reminder settings stored in UserDefaults via @AppStorage.
+    // These persist across app launches and are used to restore notification scheduling.
+    @AppStorage("reminderEnabled") private var reminderEnabled: Bool = false
+    @AppStorage("reminderHour") private var reminderHour: Int = 20
+    @AppStorage("reminderMinute") private var reminderMinute: Int = 0
+
     // @Environment(\.dismiss) provides access to the dismiss action from the SwiftUI environment.
     // This is the modern way to dismiss sheets, popovers, and other presented views.
     // When called, it dismisses the current view presentation.
@@ -37,11 +43,51 @@ struct GoalSettingsView: View {
     @State private var showingExportError = false
     @State private var exportErrorMessage = ""
 
+    // State for notification permission denied alert.
+    // Shown when user tries to enable reminders but has denied notification permissions.
+    @State private var showingPermissionDeniedAlert = false
+
     // Cached URL for the export file.
     // We prepare the file before ShareLink is tapped to ensure it's ready.
     // Note: Files in temporaryDirectory are automatically cleaned up by iOS
     // when the system needs space or during device restarts.
     @State private var cachedExportURL: URL?
+
+    /// Computed binding for the reminder time DatePicker.
+    ///
+    /// **Why a Computed Binding?**
+    /// DatePicker requires a Date binding, but we store hour and minute separately
+    /// in @AppStorage for simplicity and type safety. This computed binding:
+    /// - Creates a Date from stored hour/minute for the picker to display
+    /// - Extracts hour/minute from the Date when user changes the time
+    /// - Reschedules the notification whenever the time changes
+    private var reminderTime: Binding<Date> {
+        Binding(
+            get: {
+                // Create a Date from the stored hour and minute components
+                var components = DateComponents()
+                components.hour = reminderHour
+                components.minute = reminderMinute
+                return Calendar.current.date(from: components) ?? Date()
+            },
+            set: { newDate in
+                // Extract hour and minute from the new Date
+                let components = Calendar.current.dateComponents([.hour, .minute], from: newDate)
+                reminderHour = components.hour ?? 20
+                reminderMinute = components.minute ?? 0
+
+                // Reschedule notification if reminders are enabled
+                if reminderEnabled {
+                    Task {
+                        await NotificationManager.shared.scheduleDailyReminder(
+                            hour: reminderHour,
+                            minute: reminderMinute
+                        )
+                    }
+                }
+            }
+        )
+    }
 
     /// Prepares the CSV export file for sharing.
     ///
@@ -104,6 +150,58 @@ struct GoalSettingsView: View {
                     Text("Set your target number of puffs per day. This helps you track your progress toward reducing usage.")
                 }
 
+                // Reminders section
+                // Toggle is a SwiftUI control for boolean on/off states.
+                // When combined with @AppStorage, changes persist automatically.
+                Section {
+                    Toggle("Daily Reminder", isOn: Binding(
+                        get: { reminderEnabled },
+                        set: { newValue in
+                            if newValue {
+                                // User wants to enable reminders - request permission first
+                                Task {
+                                    let granted = await NotificationManager.shared.requestPermission()
+                                    // Schedule notification before updating UI (if granted)
+                                    if granted {
+                                        await NotificationManager.shared.scheduleDailyReminder(
+                                            hour: reminderHour,
+                                            minute: reminderMinute
+                                        )
+                                    }
+                                    // Update UI state on main actor
+                                    await MainActor.run {
+                                        if granted {
+                                            reminderEnabled = true
+                                        } else {
+                                            // Permission denied - reset toggle and show alert
+                                            reminderEnabled = false
+                                            showingPermissionDeniedAlert = true
+                                        }
+                                    }
+                                }
+                            } else {
+                                // User wants to disable reminders
+                                reminderEnabled = false
+                                NotificationManager.shared.cancelDailyReminder()
+                            }
+                        }
+                    ))
+
+                    // Only show time picker when reminders are enabled
+                    // DatePicker with displayedComponents: .hourAndMinute shows only time selection
+                    if reminderEnabled {
+                        DatePicker(
+                            "Reminder Time",
+                            selection: reminderTime,
+                            displayedComponents: .hourAndMinute
+                        )
+                    }
+                } header: {
+                    Text("Reminders")
+                } footer: {
+                    Text("Get a daily reminder to log your puffs and check your progress.")
+                }
+
                 // Data export section
                 // ShareLink is a SwiftUI view (iOS 16+) that presents the system share sheet.
                 // It's simpler than the older fileExporter modifier and integrates with
@@ -154,6 +252,20 @@ struct GoalSettingsView: View {
                 Button("OK", role: .cancel) { }
             } message: {
                 Text("Could not create export file: \(exportErrorMessage)")
+            }
+            // Alert shown when notification permission is denied.
+            // Offers a button to open Settings where users can enable notifications.
+            .alert("Notifications Disabled", isPresented: $showingPermissionDeniedAlert) {
+                Button("Open Settings") {
+                    // UIApplication.openSettingsURLString opens the app's Settings page
+                    // where users can change notification permissions.
+                    if let settingsURL = URL(string: UIApplication.openSettingsURLString) {
+                        UIApplication.shared.open(settingsURL)
+                    }
+                }
+                Button("Cancel", role: .cancel) { }
+            } message: {
+                Text("Please enable notifications in Settings to receive daily reminders.")
             }
             .toolbar {
                 // ToolbarItem lets us add buttons and controls to the navigation bar

@@ -1,4 +1,5 @@
 import SwiftUI
+import WidgetKit
 
 struct ContentView: View {
     // @State holds the array of puffs in memory during runtime.
@@ -24,7 +25,8 @@ struct ContentView: View {
     // This property is shared with GoalSettingsView using the same storage key "dailyPuffGoal".
     // Any changes in either view will automatically sync because they share the same UserDefaults key.
     // Default value of 10 is used on first launch when no value exists in UserDefaults.
-    @AppStorage("dailyPuffGoal") private var dailyPuffGoal: Int = 10
+    // store: .shared writes to the App Group container so the widget can read the same value.
+    @AppStorage("dailyPuffGoal", store: .shared) private var dailyPuffGoal: Int = 10
 
     // @AppStorage for persisting the best streak achieved.
     // This value represents the longest consecutive days the user has met their daily goal.
@@ -58,9 +60,11 @@ struct ContentView: View {
 
     // Load puffs from UserDefaults
     // This function reads the stored JSON data and decodes it back into an array of Puff objects.
+    // Reads from UserDefaults.shared (App Group container) so the widget extension can access
+    // the same data.
     private func loadPuffs() {
         // Get the Data object stored under our key
-        guard let data = UserDefaults.standard.data(forKey: puffsKey) else {
+        guard let data = UserDefaults.shared.data(forKey: puffsKey) else {
             // If there's no data (first app launch), keep the empty array
             return
         }
@@ -78,12 +82,17 @@ struct ContentView: View {
 
     // Save puffs to UserDefaults
     // This function encodes the puffs array to JSON and stores it to disk.
+    // Writes to UserDefaults.shared (App Group container) so the widget extension can read
+    // the latest data. After saving, signals WidgetKit to reload all widget timelines so
+    // the home screen widget reflects the new count immediately.
     private func savePuffs() {
         do {
             // Encode the puffs array to JSON Data
             let data = try JSONEncoder().encode(puffs)
-            // Save the data to UserDefaults under our key
-            UserDefaults.standard.set(data, forKey: puffsKey)
+            // Save the data to the shared App Group container
+            UserDefaults.shared.set(data, forKey: puffsKey)
+            // Tell WidgetKit to reload all timelines so widgets update now
+            WidgetCenter.shared.reloadAllTimelines()
         } catch {
             // If encoding fails (should be rare), log the error
             print("Failed to save puffs: \(error)")

@@ -11,17 +11,21 @@
 		4E00FF262EC82F4500387ED6 /* HistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E00FF272EC82F4500387ED6 /* HistoryView.swift */; };
 		4E00FF282EC82F4500387ED7 /* PuffGrouping.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E00FF292EC82F4500387ED7 /* PuffGrouping.swift */; };
 		4E00FF302EC82F4500387ED8 /* GoalSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E00FF312EC82F4500387ED8 /* GoalSettingsView.swift */; };
-		5E00FF332EC82F4500387EDA /* StatisticsCalculator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E00FF322EC82F4500387ED9 /* StatisticsCalculator.swift */; };
+		4E94E2DD2F63B72C00E1CD73 /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4E94E2DC2F63B72C00E1CD73 /* WidgetKit.framework */; };
+		4E94E2DF2F63B72C00E1CD73 /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4E94E2DE2F63B72C00E1CD73 /* SwiftUI.framework */; };
+		4E94E2EE2F63B72D00E1CD73 /* PuffwiseWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 4E94E2DA2F63B72C00E1CD73 /* PuffwiseWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		4EF29CD22F0EF3F7009DF042 /* StreakCalculator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EF29CD12F0EF3F7009DF042 /* StreakCalculator.swift */; };
+		5E00FF332EC82F4500387EDA /* StatisticsCalculator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E00FF322EC82F4500387ED9 /* StatisticsCalculator.swift */; };
+		6E00FF352EC82F4500387EDC /* DeletedPuff.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E00FF342EC82F4500387EDB /* DeletedPuff.swift */; };
+		7E00FF372EC82F4500387EDE /* TrashView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7E00FF362EC82F4500387EDD /* TrashView.swift */; };
+		8E00FF392EC82F4500387EE0 /* CSVExporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8E00FF382EC82F4500387EDF /* CSVExporter.swift */; };
+		9E00FF3B2EC82F4500387EE2 /* NotificationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E00FF3A2EC82F4500387EE1 /* NotificationManager.swift */; };
 		AA0000000000000000000001 /* PuffwiseApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0000000000000000000001 /* PuffwiseApp.swift */; };
 		AA0000000000000000000002 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0000000000000000000002 /* ContentView.swift */; };
 		AA0000000000000000000003 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = BB0000000000000000000003 /* Assets.xcassets */; };
 		AA0000000000000000000004 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = BB0000000000000000000005 /* Preview Assets.xcassets */; };
 		B454AEF3383949D6840D8C22 /* EditPuffView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A221399BA4F421FBDBCC080 /* EditPuffView.swift */; };
-	6E00FF352EC82F4500387EDC /* DeletedPuff.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E00FF342EC82F4500387EDB /* DeletedPuff.swift */; };
-	7E00FF372EC82F4500387EDE /* TrashView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7E00FF362EC82F4500387EDD /* TrashView.swift */; };
-	8E00FF392EC82F4500387EE0 /* CSVExporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8E00FF382EC82F4500387EDF /* CSVExporter.swift */; };
-	9E00FF3B2EC82F4500387EE2 /* NotificationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E00FF3A2EC82F4500387EE1 /* NotificationManager.swift */; };
+		DDSD0000000000000000001 /* SharedDefaults.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDSD0000000000000000002 /* SharedDefaults.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -32,7 +36,28 @@
 			remoteGlobalIDString = FF0000000000000000000001;
 			remoteInfo = Puffwise;
 		};
+		4E94E2EC2F63B72D00E1CD73 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = GG0000000000000000000001 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 4E94E2D92F63B72C00E1CD73;
+			remoteInfo = PuffwiseWidgetExtension;
+		};
 /* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		4E94E2EF2F63B72D00E1CD73 /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				4E94E2EE2F63B72D00E1CD73 /* PuffwiseWidgetExtension.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		3A221399BA4F421FBDBCC080 /* EditPuffView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditPuffView.swift; sourceTree = "<group>"; };
@@ -40,22 +65,39 @@
 		4E00FF272EC82F4500387ED6 /* HistoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryView.swift; sourceTree = "<group>"; };
 		4E00FF292EC82F4500387ED7 /* PuffGrouping.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PuffGrouping.swift; sourceTree = "<group>"; };
 		4E00FF312EC82F4500387ED8 /* GoalSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GoalSettingsView.swift; sourceTree = "<group>"; };
-		5E00FF322EC82F4500387ED9 /* StatisticsCalculator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatisticsCalculator.swift; sourceTree = "<group>"; };
 		4E4B351C2EDE9375001F15A6 /* PuffwiseTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = PuffwiseTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		4E94E2DA2F63B72C00E1CD73 /* PuffwiseWidgetExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = PuffwiseWidgetExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		4E94E2DC2F63B72C00E1CD73 /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
+		4E94E2DE2F63B72C00E1CD73 /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
+		4E94E2F42F63B84400E1CD73 /* Puffwise.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Puffwise.entitlements; sourceTree = "<group>"; };
+		4E94E2F52F63B86800E1CD73 /* PuffwiseWidgetExtension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = PuffwiseWidgetExtension.entitlements; sourceTree = "<group>"; };
 		4EF29CD12F0EF3F7009DF042 /* StreakCalculator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StreakCalculator.swift; sourceTree = "<group>"; };
+		5E00FF322EC82F4500387ED9 /* StatisticsCalculator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatisticsCalculator.swift; sourceTree = "<group>"; };
+		6E00FF342EC82F4500387EDB /* DeletedPuff.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeletedPuff.swift; sourceTree = "<group>"; };
+		7E00FF362EC82F4500387EDD /* TrashView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrashView.swift; sourceTree = "<group>"; };
+		8E00FF382EC82F4500387EDF /* CSVExporter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CSVExporter.swift; sourceTree = "<group>"; };
+		9E00FF3A2EC82F4500387EE1 /* NotificationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationManager.swift; sourceTree = "<group>"; };
+		DDSD0000000000000000002 /* SharedDefaults.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedDefaults.swift; sourceTree = "<group>"; };
 		BB0000000000000000000001 /* PuffwiseApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PuffwiseApp.swift; sourceTree = "<group>"; };
 		BB0000000000000000000002 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		BB0000000000000000000003 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		BB0000000000000000000005 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		CC0000000000000000000001 /* Puffwise.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Puffwise.app; sourceTree = BUILT_PRODUCTS_DIR; };
-	6E00FF342EC82F4500387EDB /* DeletedPuff.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeletedPuff.swift; sourceTree = "<group>"; };
-	7E00FF362EC82F4500387EDD /* TrashView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrashView.swift; sourceTree = "<group>"; };
-	8E00FF382EC82F4500387EDF /* CSVExporter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CSVExporter.swift; sourceTree = "<group>"; };
-	9E00FF3A2EC82F4500387EE1 /* NotificationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationManager.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		4E94E2F22F63B72D00E1CD73 /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 4E94E2D92F63B72C00E1CD73 /* PuffwiseWidgetExtension */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		4E4B351D2EDE9375001F15A6 /* PuffwiseTests */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = PuffwiseTests; sourceTree = "<group>"; };
+		4E94E2E02F63B72C00E1CD73 /* PuffwiseWidget */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (4E94E2F22F63B72D00E1CD73 /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = PuffwiseWidget; sourceTree = "<group>"; };
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -63,6 +105,15 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		4E94E2D72F63B72C00E1CD73 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				4E94E2DF2F63B72C00E1CD73 /* SwiftUI.framework in Frameworks */,
+				4E94E2DD2F63B72C00E1CD73 /* WidgetKit.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -76,6 +127,15 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		4E94E2DB2F63B72C00E1CD73 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				4E94E2DC2F63B72C00E1CD73 /* WidgetKit.framework */,
+				4E94E2DE2F63B72C00E1CD73 /* SwiftUI.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 		BB0000000000000000000004 /* Preview Content */ = {
 			isa = PBXGroup;
 			children = (
@@ -87,8 +147,11 @@
 		EE0000000000000000000001 = {
 			isa = PBXGroup;
 			children = (
+				4E94E2F52F63B86800E1CD73 /* PuffwiseWidgetExtension.entitlements */,
 				EE0000000000000000000002 /* Puffwise */,
 				4E4B351D2EDE9375001F15A6 /* PuffwiseTests */,
+				4E94E2E02F63B72C00E1CD73 /* PuffwiseWidget */,
+				4E94E2DB2F63B72C00E1CD73 /* Frameworks */,
 				EE0000000000000000000003 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -96,12 +159,14 @@
 		EE0000000000000000000002 /* Puffwise */ = {
 			isa = PBXGroup;
 			children = (
+				4E94E2F42F63B84400E1CD73 /* Puffwise.entitlements */,
 				4EF29CD12F0EF3F7009DF042 /* StreakCalculator.swift */,
 				4E00FF242EC82F4500387ED5 /* Puff.swift */,
 				4E00FF292EC82F4500387ED7 /* PuffGrouping.swift */,
 				5E00FF322EC82F4500387ED9 /* StatisticsCalculator.swift */,
 				8E00FF382EC82F4500387EDF /* CSVExporter.swift */,
 				9E00FF3A2EC82F4500387EE1 /* NotificationManager.swift */,
+				DDSD0000000000000000002 /* SharedDefaults.swift */,
 				BB0000000000000000000001 /* PuffwiseApp.swift */,
 				BB0000000000000000000002 /* ContentView.swift */,
 				4E00FF272EC82F4500387ED6 /* HistoryView.swift */,
@@ -120,6 +185,7 @@
 			children = (
 				CC0000000000000000000001 /* Puffwise.app */,
 				4E4B351C2EDE9375001F15A6 /* PuffwiseTests.xctest */,
+				4E94E2DA2F63B72C00E1CD73 /* PuffwiseWidgetExtension.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -150,6 +216,28 @@
 			productReference = 4E4B351C2EDE9375001F15A6 /* PuffwiseTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
+		4E94E2D92F63B72C00E1CD73 /* PuffwiseWidgetExtension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 4E94E2F32F63B72D00E1CD73 /* Build configuration list for PBXNativeTarget "PuffwiseWidgetExtension" */;
+			buildPhases = (
+				4E94E2D62F63B72C00E1CD73 /* Sources */,
+				4E94E2D72F63B72C00E1CD73 /* Frameworks */,
+				4E94E2D82F63B72C00E1CD73 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				4E94E2E02F63B72C00E1CD73 /* PuffwiseWidget */,
+			);
+			name = PuffwiseWidgetExtension;
+			packageProductDependencies = (
+			);
+			productName = PuffwiseWidgetExtension;
+			productReference = 4E94E2DA2F63B72C00E1CD73 /* PuffwiseWidgetExtension.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
 		FF0000000000000000000001 /* Puffwise */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = FF0000000000000000000002 /* Build configuration list for PBXNativeTarget "Puffwise" */;
@@ -157,10 +245,12 @@
 				DD0000000000000000000002 /* Sources */,
 				DD0000000000000000000001 /* Frameworks */,
 				DD0000000000000000000003 /* Resources */,
+				4E94E2EF2F63B72D00E1CD73 /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				4E94E2ED2F63B72D00E1CD73 /* PBXTargetDependency */,
 			);
 			name = Puffwise;
 			productName = Puffwise;
@@ -180,6 +270,9 @@
 					4E4B351B2EDE9375001F15A6 = {
 						CreatedOnToolsVersion = 16.4;
 						TestTargetID = FF0000000000000000000001;
+					};
+					4E94E2D92F63B72C00E1CD73 = {
+						CreatedOnToolsVersion = 16.4;
 					};
 					FF0000000000000000000001 = {
 						CreatedOnToolsVersion = 15.4;
@@ -201,12 +294,20 @@
 			targets = (
 				FF0000000000000000000001 /* Puffwise */,
 				4E4B351B2EDE9375001F15A6 /* PuffwiseTests */,
+				4E94E2D92F63B72C00E1CD73 /* PuffwiseWidgetExtension */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
 		4E4B351A2EDE9375001F15A6 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		4E94E2D82F63B72C00E1CD73 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -232,6 +333,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		4E94E2D62F63B72C00E1CD73 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		DD0000000000000000000002 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -249,6 +357,7 @@
 				6E00FF352EC82F4500387EDC /* DeletedPuff.swift in Sources */,
 				8E00FF392EC82F4500387EE0 /* CSVExporter.swift in Sources */,
 				9E00FF3B2EC82F4500387EE2 /* NotificationManager.swift in Sources */,
+				DDSD0000000000000000001 /* SharedDefaults.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -259,6 +368,11 @@
 			isa = PBXTargetDependency;
 			target = FF0000000000000000000001 /* Puffwise */;
 			targetProxy = 4E4B35202EDE9375001F15A6 /* PBXContainerItemProxy */;
+		};
+		4E94E2ED2F63B72D00E1CD73 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 4E94E2D92F63B72C00E1CD73 /* PuffwiseWidgetExtension */;
+			targetProxy = 4E94E2EC2F63B72D00E1CD73 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -296,6 +410,64 @@
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Puffwise.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Puffwise";
+			};
+			name = Release;
+		};
+		4E94E2F02F63B72D00E1CD73 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CODE_SIGN_ENTITLEMENTS = PuffwiseWidgetExtension.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 3UH44K89GB;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = PuffwiseWidget/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = PuffwiseWidget;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 18.5;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.puffwise.app.PuffwiseWidget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		4E94E2F12F63B72D00E1CD73 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CODE_SIGN_ENTITLEMENTS = PuffwiseWidgetExtension.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 3UH44K89GB;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = PuffwiseWidget/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = PuffwiseWidget;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 18.5;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.puffwise.app.PuffwiseWidget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Release;
 		};
@@ -423,6 +595,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = Puffwise/Puffwise.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"Puffwise/Preview Content\"";
@@ -452,6 +625,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = Puffwise/Puffwise.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"Puffwise/Preview Content\"";
@@ -484,6 +658,15 @@
 			buildConfigurations = (
 				4E4B35222EDE9375001F15A6 /* Debug */,
 				4E4B35232EDE9375001F15A6 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		4E94E2F32F63B72D00E1CD73 /* Build configuration list for PBXNativeTarget "PuffwiseWidgetExtension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				4E94E2F02F63B72D00E1CD73 /* Debug */,
+				4E94E2F12F63B72D00E1CD73 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

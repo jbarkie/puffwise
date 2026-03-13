@@ -20,6 +20,7 @@ This is a learning project for the developer's first iOS app. All development fo
 5. **Code Quality**: Run the code-verifier agent before committing and before opening PRs
 
 When implementing features:
+
 - Create a feature branch: `git checkout -b feature/feature-name`
 - Make commits with clear, descriptive messages
 - **Ensure all tests pass**: Run `xcodebuild test` and verify all tests pass before committing
@@ -36,16 +37,20 @@ Use this concise format for PR descriptions:
 
 ```markdown
 ## Summary
+
 [1-3 sentences: What this PR does and why]
 
 ## What Changed
+
 - **file.swift**: [Brief description of changes]
 - **file2.swift**: [Brief description of changes]
 
 ## Swift/SwiftUI Concepts
+
 [Only for PRs introducing new patterns. List 2-4 key concepts with one-line explanations]
 
 ## Test Plan
+
 - [ ] All tests pass
 - [ ] Verified in iOS Simulator via ios-simulator MCP
 - [ ] [Any feature-specific manual checks]
@@ -54,6 +59,7 @@ Use this concise format for PR descriptions:
 ```
 
 **Guidelines:**
+
 - Keep summaries brief—avoid restating the title
 - Don't include code snippets unless they clarify something non-obvious
 - Swift/SwiftUI Concepts section is optional for small changes
@@ -67,6 +73,7 @@ Use this concise format for PR descriptions:
 ## Current State
 
 **Core Features:**
+
 - Puff logging with daily goal tracking (1-100 puffs)
 - Statistics display (7-day and 30-day averages)
 - Streak tracking (consecutive days meeting goal, with flame icon)
@@ -125,10 +132,3 @@ open Puffwise.xcodeproj
 - **Data Persistence**: UserDefaults with JSON encoding
 - **Data Visualization**: Swift Charts (iOS 17.0+)
 - **Testing**: Swift Testing framework (Swift 5.9+)
-
-## Future Features
-
-- Time-of-day insights (which hours have most puffs)
-- Weekly/monthly goal view
-- Advanced chart features (trend lines, annotations)
-- Milestone tracking and achievement notifications

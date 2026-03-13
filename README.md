@@ -112,7 +112,7 @@ xcodebuild -project Puffwise.xcodeproj -scheme Puffwise -destination 'generic/pl
 
 ### Running Tests
 
-Puffwise includes a test suite built with Swift Testing framework to ensure code quality and correctness.
+Puffwise includes a test suite built with Swift Testing framework to ensure code quality and correctness, with comprehensive coverage across the app's core functionality. Swift Testing framework (introduced in Swift 5.9) provides better error messages, native async/await support, and more Swift-native syntax than traditional XCTest.
 
 ```bash
 # Run all tests
@@ -122,99 +122,3 @@ xcodebuild test -project Puffwise.xcodeproj -scheme Puffwise -destination 'platf
 # Or run tests in Xcode
 # Press Cmd+U or Product → Test
 ```
-
-**Current Test Coverage:**
-
-The test suite uses Swift Testing framework (Swift 5.9+) with comprehensive coverage across the app's core functionality:
-
-- **PuffGrouping Tests** (8 tests): Date grouping and sorting logic
-
-  - Daily, weekly, and monthly grouping algorithms
-  - Empty array and single puff edge cases
-  - Year boundary transitions
-  - Multiple puffs with same timestamp handling
-  - Newest-first sorting verification
-
-- **Puff Model Tests** (6 tests): Core data model validation
-
-  - Default and custom initialization
-  - UUID uniqueness and stability
-  - Codable conformance (JSON encoding/decoding)
-  - Array encoding/decoding for persistence
-
-- **PuffGroup Model Tests** (4 tests): Grouping data structure
-
-  - Count property accuracy
-  - isToday property behavior
-  - Identifiable conformance and ID stability
-
-- **DateFormatter Tests** (4 tests): Formatter extensions
-  - Day, week, and month formatting
-  - Static formatter reusability and performance
-
-- **Goal Settings Tests** (4 tests): Goal persistence and validation
-  - Default value initialization
-  - UserDefaults persistence
-  - Range validation (1-100 bounds)
-  - Goal update functionality
-
-- **Puff Edit/Delete Tests** (11 tests): Edit and delete functionality
-  - Delete puff removes from array while preserving others
-  - Delete all puffs in a group (empty group handling)
-  - Delete today's puff updates today's count correctly
-  - Edit puff preserves ID while updating timestamp
-  - Edit puff to different day updates grouping correctly
-  - Edit today's puff to yesterday affects counts
-  - Multiple sequential edits to same puff
-  - Edit across month boundaries
-  - Edit preserves array integrity (no duplication/deletion)
-  - Edit to same timestamp is idempotent
-
-- **Statistics Tests** (8 tests): Statistics calculation
-  - Empty array returns zero averages
-  - Single day statistics
-  - 7-day average calculation
-  - 30-day average calculation
-  - Partial data (less than 7/30 days)
-  - Old data exclusion (>30 days)
-  - StatisticsInfo Equatable conformance
-  - hasData computed property
-
-- **Streak Calculation Tests** (18 tests): Streak tracking logic
-  - Empty data and no-goal edge cases
-  - Single day and consecutive days streak building
-  - Goal exceeded and missed day streak breaking
-  - Today incomplete/complete handling
-  - Zero puffs counting as meeting goal
-  - Best streak preservation and updates
-  - Year boundary transitions
-  - StreakInfo model properties and Equatable conformance
-  - Impact of edit/delete operations on streaks
-
-- **Undo/Trash Tests** (20 tests): Trash and recovery functionality
-  - DeletedPuff model creation and expiry logic
-  - 24-hour expiry calculation (exact, before, after thresholds)
-  - Time until expiry calculations
-  - Formatted time remaining strings
-  - Original puff ID preservation
-  - Auto-purge mechanism (expired vs non-expired filtering)
-  - Empty array and edge case handling
-  - Codable conformance for persistence
-  - Array encoding/decoding
-  - Equatable conformance
-
-- **CSV Export Tests** (13 tests): Export functionality
-  - Empty array and single puff export
-  - Newest-first sorting
-  - ISO 8601 timestamp format
-  - Header metadata (total puffs, goal, date range)
-  - Filename generation with date
-  - Column headers and structure
-  - Large number formatting (comma separators)
-  - Day of week inclusion
-  - RFC 4180 CSV compliance (quoted fields with commas)
-  - File I/O (temp file creation, content verification, UTF-8 encoding)
-
-**Total: 98 tests, all passing**
-
-The tests use Swift Testing framework (introduced in Swift 5.9), which provides better error messages, native async/await support, and more Swift-native syntax than traditional XCTest.

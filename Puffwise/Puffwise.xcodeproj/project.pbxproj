@@ -14,6 +14,7 @@
 		4E94E2DD2F63B72C00E1CD73 /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4E94E2DC2F63B72C00E1CD73 /* WidgetKit.framework */; };
 		4E94E2DF2F63B72C00E1CD73 /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4E94E2DE2F63B72C00E1CD73 /* SwiftUI.framework */; };
 		4E94E2EE2F63B72D00E1CD73 /* PuffwiseWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 4E94E2DA2F63B72C00E1CD73 /* PuffwiseWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		4E94E32E2F64E1A100E1CD73 /* Puff.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E00FF242EC82F4500387ED5 /* Puff.swift */; };
 		4EF29CD22F0EF3F7009DF042 /* StreakCalculator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EF29CD12F0EF3F7009DF042 /* StreakCalculator.swift */; };
 		5E00FF332EC82F4500387EDA /* StatisticsCalculator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E00FF322EC82F4500387ED9 /* StatisticsCalculator.swift */; };
 		6E00FF352EC82F4500387EDC /* DeletedPuff.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E00FF342EC82F4500387EDB /* DeletedPuff.swift */; };
@@ -77,12 +78,12 @@
 		7E00FF362EC82F4500387EDD /* TrashView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrashView.swift; sourceTree = "<group>"; };
 		8E00FF382EC82F4500387EDF /* CSVExporter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CSVExporter.swift; sourceTree = "<group>"; };
 		9E00FF3A2EC82F4500387EE1 /* NotificationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationManager.swift; sourceTree = "<group>"; };
-		DDSD0000000000000000002 /* SharedDefaults.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedDefaults.swift; sourceTree = "<group>"; };
 		BB0000000000000000000001 /* PuffwiseApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PuffwiseApp.swift; sourceTree = "<group>"; };
 		BB0000000000000000000002 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		BB0000000000000000000003 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		BB0000000000000000000005 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		CC0000000000000000000001 /* Puffwise.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Puffwise.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		DDSD0000000000000000002 /* SharedDefaults.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedDefaults.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -337,6 +338,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				4E94E32E2F64E1A100E1CD73 /* Puff.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

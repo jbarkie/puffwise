@@ -6,21 +6,6 @@
 import WidgetKit
 import SwiftUI
 
-// MARK: - Local Data Model
-
-/// A minimal mirror of the main app's Puff model used only for JSON decoding.
-///
-/// **Why not import Puff.swift directly?**
-/// The widget extension is a separate binary. Sharing source files across targets
-/// requires adding the file to both target memberships in Xcode. To avoid that
-/// setup step, we define a local struct here that matches the exact Codable structure
-/// of Puffwise/Puff.swift. As long as the property names and types match, JSONDecoder
-/// will decode the shared UserDefaults data correctly.
-private struct WidgetPuff: Decodable {
-    let id: UUID
-    let timestamp: Date
-}
-
 // MARK: - Data Loader
 
 /// Reads today's puff count and daily goal from the shared App Group container.
@@ -43,7 +28,7 @@ private func loadWidgetData() -> (count: Int, goal: Int) {
     let goal = rawGoal > 0 ? max(1, min(100, rawGoal)) : 10
 
     guard let data = defaults.data(forKey: "puffs"),
-          let puffs = try? JSONDecoder().decode([WidgetPuff].self, from: data)
+          let puffs = try? JSONDecoder().decode([Puff].self, from: data)
     else { return (0, goal) }
 
     let todayCount = puffs.filter { Calendar.current.isDateInToday($0.timestamp) }.count

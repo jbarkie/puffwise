@@ -24,7 +24,8 @@ struct GoalSettingsView: View {
     //
     // The storage key "dailyPuffGoal" must match across all views that need to share this value.
     // Default value (10) is used when the key doesn't exist in UserDefaults (first launch).
-    @AppStorage("dailyPuffGoal") private var dailyPuffGoal: Int = 10
+    // store: .shared writes to the App Group container so the widget can read the same value.
+    @AppStorage("dailyPuffGoal", store: .shared) private var dailyPuffGoal: Int = 10
 
     // Reminder settings stored in UserDefaults via @AppStorage.
     // These persist across app launches and are used to restore notification scheduling.

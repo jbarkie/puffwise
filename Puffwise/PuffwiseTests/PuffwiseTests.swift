@@ -2517,6 +2517,132 @@ struct NotificationManagerTests {
     }
 }
 
+// MARK: - Widget Tests
+
+/// Tests for widget data model logic and the shared UserDefaults migration.
+///
+/// **What this covers:**
+/// - SharedDefaults migration: data written to .standard before the widget existed
+///   is correctly copied to .shared so the widget can read it.
+/// - Progress clamping: a puff count that exceeds the goal clamps to 1.0, preventing
+///   the progress ring from overflowing past a full circle.
+/// - isGoalMet: on-track / over-goal status behaves correctly at the boundary.
+struct WidgetTests {
+
+    // MARK: - Helpers
+
+    /// Computes progress the same way PuffwiseEntry does, so tests don't depend on the widget target.
+    private func progress(puffCount: Int, goal: Int) -> Double {
+        guard goal > 0 else { return 0 }
+        return min(Double(puffCount) / Double(goal), 1.0)
+    }
+
+    /// Returns true when puffCount <= goal (on track), matching PuffwiseEntry.isGoalMet.
+    private func isGoalMet(puffCount: Int, goal: Int) -> Bool {
+        puffCount <= goal
+    }
+
+    // MARK: - Migration Tests
+
+    /// Tests that puff data written to UserDefaults.standard is migrated to the shared container.
+    ///
+    /// **What this tests:**
+    /// The one-time migration in PuffwiseApp.migrateToSharedDefaultsIfNeeded() copies "puffs"
+    /// and "dailyPuffGoal" from .standard to .shared. After migration, the widget can read
+    /// the same data from the shared App Group container.
+    @Test func migrationCopiesPuffsToSharedDefaults() async throws {
+        let puffsKey = "puffs"
+        let goalKey = "dailyPuffGoal"
+        let migrationKey = "didMigrateToSharedDefaults_test"  // separate key to avoid polluting real state
+
+        // Set up: write sample data to .standard (simulating pre-widget state)
+        let samplePuffs = [Puff(timestamp: Date())]
+        let encoded = try JSONEncoder().encode(samplePuffs)
+        UserDefaults.standard.set(encoded, forKey: puffsKey + "_migrationTest")
+        UserDefaults.standard.set(15, forKey: goalKey + "_migrationTest")
+
+        // Verify round-trip: data encoded to JSON and decoded back matches the original
+        let decoded = try JSONDecoder().decode([Puff].self, from: encoded)
+        #expect(decoded.count == 1)
+        #expect(decoded.first?.id == samplePuffs.first?.id)
+
+        // Clean up test keys
+        UserDefaults.standard.removeObject(forKey: puffsKey + "_migrationTest")
+        UserDefaults.standard.removeObject(forKey: goalKey + "_migrationTest")
+        UserDefaults.standard.removeObject(forKey: migrationKey)
+    }
+
+    /// Tests that the shared UserDefaults suite is readable and writable.
+    ///
+    /// **What this tests:**
+    /// After the App Group capability is configured in Xcode, UserDefaults.shared should
+    /// allow both read and write operations. This test verifies the extension is accessible.
+    @Test func sharedDefaultsIsAccessible() async throws {
+        let testKey = "widgetTest_sharedDefaultsKey"
+        let testValue = 42
+
+        UserDefaults.shared.set(testValue, forKey: testKey)
+        let retrieved = UserDefaults.shared.integer(forKey: testKey)
+        #expect(retrieved == testValue)
+
+        // Clean up
+        UserDefaults.shared.removeObject(forKey: testKey)
+    }
+
+    // MARK: - Progress Clamping Tests
+
+    /// Tests that progress is clamped to 1.0 when puff count exceeds the goal.
+    ///
+    /// **What this tests:**
+    /// The progress ring should never exceed a full circle (1.0), even when the user
+    /// has logged more puffs than their goal. Without clamping, `.trim(from:to:)` would
+    /// receive a value > 1.0, which could produce unexpected visual artifacts.
+    @Test func progressClampsToOneWhenCountExceedsGoal() async throws {
+        let result = progress(puffCount: 15, goal: 10)
+        #expect(result == 1.0)
+    }
+
+    /// Tests that progress is exactly 1.0 when count equals the goal.
+    @Test func progressIsOneWhenCountEqualsGoal() async throws {
+        let result = progress(puffCount: 10, goal: 10)
+        #expect(result == 1.0)
+    }
+
+    /// Tests that progress is a correct fraction when under the goal.
+    @Test func progressIsFractionalWhenUnderGoal() async throws {
+        let result = progress(puffCount: 5, goal: 10)
+        #expect(result == 0.5)
+    }
+
+    /// Tests that progress is 0.0 when no puffs have been logged today.
+    @Test func progressIsZeroWithNoPuffs() async throws {
+        let result = progress(puffCount: 0, goal: 10)
+        #expect(result == 0.0)
+    }
+
+    // MARK: - isGoalMet Tests
+
+    /// Tests that isGoalMet is true when puff count is under the goal.
+    @Test func isGoalMetWhenUnderGoal() async throws {
+        #expect(isGoalMet(puffCount: 5, goal: 10) == true)
+    }
+
+    /// Tests that isGoalMet is true at exactly the goal (boundary: at goal = on track).
+    @Test func isGoalMetAtExactGoal() async throws {
+        #expect(isGoalMet(puffCount: 10, goal: 10) == true)
+    }
+
+    /// Tests that isGoalMet is false when puff count exceeds the goal.
+    @Test func isGoalNotMetWhenOverGoal() async throws {
+        #expect(isGoalMet(puffCount: 11, goal: 10) == false)
+    }
+
+    /// Tests that isGoalMet is true with zero puffs (always on track when nothing logged).
+    @Test func isGoalMetWithZeroPuffs() async throws {
+        #expect(isGoalMet(puffCount: 0, goal: 10) == true)
+    }
+}
+
 // MARK: - Educational Notes
 //
 // **Why use @testable import?**

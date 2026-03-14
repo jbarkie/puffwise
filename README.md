@@ -53,6 +53,13 @@ Puffwise is designed to provide a better user experience than existing habit-tra
   - Best streak tracking (all-time personal best)
   - Automatic recalculation when puffs change or goals adjust
   - Smart handling of incomplete days and zero-puff days
+- **Daily Reminders**: Optional notification to log puffs and check progress ✅
+  - Configurable reminder time via settings
+  - Persists across app restarts
+- **Home Screen Widget**: Small widget showing today's count and goal ✅
+  - Circular progress ring (green = on track, orange = over goal)
+  - Updates immediately when a puff is logged in the app
+  - Requires iOS 17.0+ and App Group entitlement
 - **Clean UI**: Minimal, distraction-free interface without ads ✅
 
 ## Technical Stack
@@ -82,10 +89,14 @@ Puffwise/
 │   ├── StatisticsCalculator.swift  # Statistics calculation (7-day/30-day averages)
 │   ├── StreakCalculator.swift  # Streak calculation logic
 │   ├── CSVExporter.swift       # CSV export for data backup
+│   ├── NotificationManager.swift   # Daily reminder notification scheduling
+│   ├── SharedDefaults.swift    # UserDefaults App Group extension for widget data sharing
 │   ├── Assets.xcassets/        # App icons and colors
 │   └── Preview Content/        # SwiftUI preview assets
+├── PuffwiseWidget/
+│   └── PuffwiseWidget.swift    # Home screen widget (count + goal progress ring)
 └── PuffwiseTests/
-    └── PuffwiseTests.swift  # Comprehensive test suite (98 tests)
+    └── PuffwiseTests.swift  # Comprehensive test suite (118 tests)
 ```
 
 ## Getting Started

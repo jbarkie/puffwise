@@ -18,6 +18,8 @@ struct PuffwiseApp: App {
     /// @AppStorage is designed for use in SwiftUI views, not in App initializers.
     /// The keys match those used by @AppStorage in GoalSettingsView.
     init() {
+        migrateToSharedDefaultsIfNeeded()
+
         let reminderEnabled = UserDefaults.standard.bool(forKey: "reminderEnabled")
 
         if reminderEnabled {
@@ -36,6 +38,32 @@ struct PuffwiseApp: App {
                 )
             }
         }
+    }
+
+    /// One-time migration of puff data from UserDefaults.standard to the shared App Group container.
+    ///
+    /// **Why migrate?**
+    /// Before widget support, puffs were stored in UserDefaults.standard (the app's private
+    /// container). The widget extension cannot read this container, so we copy the data to
+    /// UserDefaults.shared (the App Group container) once. Subsequent reads/writes go directly
+    /// to .shared, so this migration only runs once.
+    ///
+    /// **Migration flag:**
+    /// We store a Bool in UserDefaults.standard to track whether migration has occurred.
+    /// Keeping the flag in .standard (not .shared) ensures the migration runs exactly once
+    /// per device, even if the shared container is cleared.
+    func migrateToSharedDefaultsIfNeeded() {
+        let migrationKey = "didMigrateToSharedDefaults"
+        guard !UserDefaults.standard.bool(forKey: migrationKey) else { return }
+
+        if let data = UserDefaults.standard.data(forKey: "puffs") {
+            UserDefaults.shared.set(data, forKey: "puffs")
+        }
+        if let goal = UserDefaults.standard.object(forKey: "dailyPuffGoal") as? Int {
+            UserDefaults.shared.set(goal, forKey: "dailyPuffGoal")
+        }
+
+        UserDefaults.standard.set(true, forKey: migrationKey)
     }
 
     var body: some Scene {

@@ -1,0 +1,27 @@
+{
+  "project": "Puffwise",
+  "platform": "iOS 17.0+",
+  "language": "Swift / SwiftUI",
+  "bundle_id": "com.puffwise.app",
+  "test_count": 109,
+  "commands": {
+    "build": "xcodebuild -project Puffwise/Puffwise.xcodeproj -scheme Puffwise -destination 'generic/platform=iOS Simulator' build",
+    "test": "xcodebuild test -project Puffwise/Puffwise.xcodeproj -scheme Puffwise -destination 'platform=iOS Simulator,name=iPhone 16'",
+    "open": "open Puffwise/Puffwise.xcodeproj"
+  },
+  "key_files": {
+    "entry_point": "Puffwise/Puffwise/PuffwiseApp.swift",
+    "main_view": "Puffwise/Puffwise/ContentView.swift",
+    "data_model": "Puffwise/Puffwise/Puff.swift",
+    "tests": "Puffwise/PuffwiseTests/PuffwiseTests.swift",
+    "backlog": "docs/ALL_SPRINTS_MASTER_PLAN.md",
+    "sprint_status": ".claude/sprint_status.json"
+  },
+  "persistence": "UserDefaults with JSON encoding",
+  "conventions": {
+    "no_print_in_production": true,
+    "no_contractions_in_docs": true,
+    "branch_naming": "feature/YYYYMMDD_Sprint_N",
+    "commit_format": "type: description (#issue)"
+  }
+}

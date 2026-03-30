@@ -1,0 +1,127 @@
+# All Sprints Master Plan
+
+Last Updated: 2026-03-29
+Audience: Product Owner and Claude Code development team
+Purpose: Single source of truth for sprint history, current state, and future roadmap
+
+## Maintenance Guidelines
+
+Update this file during:
+- **Phase 3** (Sprint Planning): Add new sprint entry with planned Cards
+- **Phase 7** (Sprint Review): Fill in actual outcomes, lessons learned, duration
+- **Backlog Refinement**: Reprioritize Next Sprint Candidates, add/remove/update items
+
+Do not record implementation details — those belong in retrospective files and commit messages.
+
+---
+
+## Project State
+
+**Platform**: iOS 17.0+
+**Language**: Swift / SwiftUI
+**Tests**: 109 passing
+**Bundle ID**: com.puffwise.app
+**Current Sprint**: None active — see Next Sprint Candidates
+
+---
+
+## Foundation (Pre-Sprint History)
+
+The following features were built before the sprint framework was established:
+
+- Puff logging with daily goal tracking (1-100 puffs)
+- Statistics display (7-day and 30-day averages)
+- Streak tracking with flame icon
+- History view with bar charts (day/week/month filtering)
+- Edit (tap) and delete (swipe) individual puffs
+- Undo/trash with 24-hour recovery window
+- CSV export for data backup
+- Daily reminder notifications with configurable time
+- UserDefaults persistence with JSON encoding
+- 109-test suite covering all core features
+
+---
+
+## Completed Sprints
+
+### Sprint 1: Home Screen Widget (~2026-03-XX)
+
+- **Branch**: feature/daily-count-widget
+- **Status**: In Progress
+- **Goal**: Add iOS home screen widget showing today's puff count vs. goal
+- **Outcome**: TBD — sprint in progress
+
+---
+
+## Next Sprint Candidates
+
+### F1. HealthKit Integration (~8 hrs) Priority 1
+
+- **Phase**: Core App
+- **Platform**: iOS
+- Log puff events to HealthKit as mindful minutes or custom category samples
+- Enable Health app correlation with other wellness data
+- Requires HealthKit entitlement and privacy description
+
+### F2. iCloud Sync (~10 hrs) Priority 2
+
+- **Phase**: Core App
+- **Platform**: iOS
+- Sync puff data across user's devices via CloudKit
+- Replace or supplement UserDefaults with CloudKit private database
+- Requires iCloud entitlement and conflict resolution strategy
+
+### F3. Reduction Goal Mode (~6 hrs) Priority 3
+
+- **Phase**: Core App
+- **Platform**: iOS
+- Automatic weekly goal reduction (e.g., reduce by 5% each week)
+- Visual progress curve showing target reduction trajectory
+- User can configure reduction rate and minimum floor
+
+### F4. Apple Watch Companion (~12 hrs) Priority 4
+
+- **Phase**: Core App
+- **Platform**: iOS + watchOS
+- WatchKit extension for quick puff logging from wrist
+- Complication showing today's count and goal progress
+- WatchConnectivity framework for data sync
+
+### F5. Shareable Progress Cards (~4 hrs) Priority 5
+
+- **Phase**: Core App
+- **Platform**: iOS
+- Generate share-ready image cards (e.g., "14 days meeting my goal!")
+- SwiftUI canvas rendering exported via UIGraphicsImageRenderer
+- Share sheet integration
+
+### F6. Onboarding Flow (~5 hrs) Priority 6
+
+- **Phase**: Core App
+- **Platform**: iOS
+- First-launch walkthrough setting initial goal and notification preference
+- Explain puff counting concept and app philosophy
+- Skip option for returning users after reinstall
+
+### F7. App Store Submission (~6 hrs) Priority 7
+
+- **Phase**: Distribution
+- **Platform**: iOS
+- App Store Connect setup (screenshots, description, metadata)
+- Privacy policy and data use declaration
+- TestFlight beta before public release
+
+---
+
+## HOLD Items
+
+### H1. Android / Cross-Platform Port (~40 hrs) Priority HOLD
+
+- **Reason**: iOS-first; revisit after App Store launch
+- Would require Flutter or React Native rewrite
+
+### H2. Premium / Paywall (~8 hrs) Priority HOLD
+
+- **Reason**: App is intentionally ad-free and simple; monetization not a current goal
+
+---

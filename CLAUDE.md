@@ -9,23 +9,52 @@ Puffwise is an iOS habit-tracking app designed to help users reduce smoking/vapi
 **Platform**: iOS
 **Language**: Swift with SwiftUI
 
+## Sprint Workflow
+
+All development follows a sprint-based Agile/Scrum workflow. See `docs/SPRINT_EXECUTION_WORKFLOW.md` for the full 7-phase process.
+
+**Startup**: Run `/startup-check` at the start of every session to restore sprint context.
+
+**Branch Policy**:
+- Feature branches: `feature/YYYYMMDD_Sprint_N`
+- All PRs target **main**
+- Never commit directly to main
+
+**Sprint Authority**:
+- Once a sprint plan is approved in Phase 3, all tasks within that plan are pre-authorized
+- Do not stop for per-task approval
+- Only stop for criteria in `docs/SPRINT_STOPPING_CRITERIA.md`
+
+**Key Documents**:
+- `docs/ALL_SPRINTS_MASTER_PLAN.md` — Authoritative backlog and sprint history
+- `docs/SPRINT_EXECUTION_WORKFLOW.md` — 7-phase execution process
+- `docs/SPRINT_PLANNING.md` — Sprint structure and model assignment
+- `docs/SPRINT_STOPPING_CRITERIA.md` — When to escalate
+- `docs/MODEL_ASSIGNMENT_HEURISTICS.md` — Haiku / Sonnet / Opus routing
+- `.claude/sprint_status.json` — Current sprint state
+
+**Code Standards**:
+- No `print()` in production code
+- No contractions in commit messages or documentation
+- Commit format: `type: description (#issue)`
+
 ## Development Workflow
 
 This is a learning project for the developer's first iOS app. All development follows a structured workflow:
 
 1. **Feature Branches**: All work happens in feature branches (never commit directly to main)
 2. **Pull Requests**: Features must be merged to main via pull request
-3. **Educational Focus**: Code should be well-commented and explain Swift/SwiftUI concepts as they're introduced
+3. **Educational Focus**: Code should be well-commented and explain Swift/SwiftUI concepts as they are introduced
 4. **Testing**: All tests must pass before committing changes
-5. **Code Quality**: Run the code-verifier agent before committing and before opening PRs
+5. **Code Quality**: Run the build-validator agent before committing and before opening PRs
 
 When implementing features:
 
-- Create a feature branch: `git checkout -b feature/feature-name`
+- Create a feature branch: `git checkout -b feature/YYYYMMDD_Sprint_N`
 - Make commits with clear, descriptive messages
 - **Ensure all tests pass**: Run `xcodebuild test` and verify all tests pass before committing
-- **Run code-verifier agent**: Execute the code-verifier agent to check for code quality issues, performance problems, and best practice violations before committing
-- Fix any issues identified by the code-verifier before proceeding
+- **Run build-validator agent**: Confirm zero build errors and all tests pass
+- Fix any issues identified before proceeding
 - **Verify with iOS Simulator**: Use the ios-simulator MCP to build, install, and visually verify changes in the simulator before opening PRs
 - Push and create PR when ready: `gh pr create`
 - Explain key iOS/Swift concepts in PR descriptions

@@ -33,6 +33,14 @@ struct GoalSettingsView: View {
     @AppStorage("reminderHour") private var reminderHour: Int = 20
     @AppStorage("reminderMinute") private var reminderMinute: Int = 0
 
+    // Reduction mode settings.
+    // reductionPlanData holds a JSON-encoded ReductionPlan; it is created when the toggle
+    // is enabled and decoded for status display while reduction mode is active.
+    @AppStorage("reductionModeEnabled") private var reductionModeEnabled: Bool = false
+    @AppStorage("reductionPlanData") private var reductionPlanData: Data = Data()
+    @AppStorage("weeklyReductionPercent") private var weeklyReductionPercent: Int = 5
+    @AppStorage("minimumFloor") private var minimumFloor: Int = 5
+
     // @Environment(\.dismiss) provides access to the dismiss action from the SwiftUI environment.
     // This is the modern way to dismiss sheets, popovers, and other presented views.
     // When called, it dismisses the current view presentation.
@@ -88,6 +96,27 @@ struct GoalSettingsView: View {
                 }
             }
         )
+    }
+
+    /// Decoded plan for status display; nil when mode is off or data is absent.
+    private var currentReductionPlan: ReductionPlan? {
+        guard reductionModeEnabled, !reductionPlanData.isEmpty else { return nil }
+        return try? JSONDecoder().decode(ReductionPlan.self, from: reductionPlanData)
+    }
+
+    /// Saves an updated plan to UserDefaults, preserving the original start date and goal.
+    /// Called when the user adjusts weekly % or floor while reduction mode is already on.
+    private func updateStoredPlan() {
+        guard reductionModeEnabled,
+              let existing = currentReductionPlan,
+              let encoded = try? JSONEncoder().encode(ReductionPlan(
+                  startDate: existing.startDate,
+                  startingGoal: existing.startingGoal,
+                  weeklyReductionPercent: Double(weeklyReductionPercent),
+                  minimumFloor: minimumFloor
+              ))
+        else { return }
+        reductionPlanData = encoded
     }
 
     /// Prepares the CSV export file for sharing.
@@ -149,6 +178,70 @@ struct GoalSettingsView: View {
                     // Section footer appears below the section in smaller, secondary text
                     // Use footer for explanatory text or help content
                     Text("Set your target number of puffs per day. This helps you track your progress toward reducing usage.")
+                }
+
+                // Reduction Mode section
+                Section {
+                    Toggle("Auto-Reduce Goal", isOn: Binding(
+                        get: { reductionModeEnabled },
+                        set: { enabled in
+                            if enabled {
+                                // Snapshot the current daily goal as the plan's starting point.
+                                // weeklyReductionPercent and minimumFloor are read from @AppStorage.
+                                if let encoded = try? JSONEncoder().encode(ReductionPlan(
+                                    startDate: Date(),
+                                    startingGoal: dailyPuffGoal,
+                                    weeklyReductionPercent: Double(weeklyReductionPercent),
+                                    minimumFloor: minimumFloor
+                                )) {
+                                    reductionPlanData = encoded
+                                }
+                                reductionModeEnabled = true
+                            } else {
+                                reductionModeEnabled = false
+                                // Current goal is kept as-is — user decides whether to adjust manually.
+                            }
+                        }
+                    ))
+
+                    Stepper(value: $weeklyReductionPercent, in: 1...20) {
+                        HStack {
+                            Text("Weekly Reduction")
+                            Spacer()
+                            Text("\(weeklyReductionPercent)%")
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                    .onChange(of: weeklyReductionPercent) { _, _ in updateStoredPlan() }
+
+                    Stepper(value: $minimumFloor, in: 1...50) {
+                        HStack {
+                            Text("Minimum Floor")
+                            Spacer()
+                            Text("\(minimumFloor) puffs/day")
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                    .onChange(of: minimumFloor) { _, _ in updateStoredPlan() }
+
+                    // Status row — shown only when a plan is active
+                    if let plan = currentReductionPlan {
+                        let weekNum = plan.weeksElapsed() + 1
+                        let nextDate = plan.nextReductionDate()
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Week \(weekNum) — \(plan.currentWeekTarget()) puffs/day target")
+                                .font(.subheadline)
+                                .foregroundStyle(.primary)
+                            Text("Next reduction: \(nextDate.formatted(date: .abbreviated, time: .omitted))")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                        .padding(.vertical, 2)
+                    }
+                } header: {
+                    Text("Reduction Mode")
+                } footer: {
+                    Text("Automatically compounds your daily goal down by a percentage each week until the floor is reached. The home screen shows your trajectory.")
                 }
 
                 // Reminders section

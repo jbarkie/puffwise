@@ -16,6 +16,7 @@
 		4E94E2EE2F63B72D00E1CD73 /* PuffwiseWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 4E94E2DA2F63B72C00E1CD73 /* PuffwiseWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		4E94E32E2F64E1A100E1CD73 /* Puff.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E00FF242EC82F4500387ED5 /* Puff.swift */; };
 		4EF29CD22F0EF3F7009DF042 /* StreakCalculator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EF29CD12F0EF3F7009DF042 /* StreakCalculator.swift */; };
+		FF00000000000000000000002 /* ReductionPlan.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF00000000000000000000001 /* ReductionPlan.swift */; };
 		5E00FF332EC82F4500387EDA /* StatisticsCalculator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E00FF322EC82F4500387ED9 /* StatisticsCalculator.swift */; };
 		6E00FF352EC82F4500387EDC /* DeletedPuff.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E00FF342EC82F4500387EDB /* DeletedPuff.swift */; };
 		7E00FF372EC82F4500387EDE /* TrashView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7E00FF362EC82F4500387EDD /* TrashView.swift */; };
@@ -73,6 +74,7 @@
 		4E94E2F42F63B84400E1CD73 /* Puffwise.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Puffwise.entitlements; sourceTree = "<group>"; };
 		4E94E2F52F63B86800E1CD73 /* PuffwiseWidgetExtension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = PuffwiseWidgetExtension.entitlements; sourceTree = "<group>"; };
 		4EF29CD12F0EF3F7009DF042 /* StreakCalculator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StreakCalculator.swift; sourceTree = "<group>"; };
+		FF00000000000000000000001 /* ReductionPlan.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReductionPlan.swift; sourceTree = "<group>"; };
 		5E00FF322EC82F4500387ED9 /* StatisticsCalculator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatisticsCalculator.swift; sourceTree = "<group>"; };
 		6E00FF342EC82F4500387EDB /* DeletedPuff.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeletedPuff.swift; sourceTree = "<group>"; };
 		7E00FF362EC82F4500387EDD /* TrashView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrashView.swift; sourceTree = "<group>"; };
@@ -162,6 +164,7 @@
 			children = (
 				4E94E2F42F63B84400E1CD73 /* Puffwise.entitlements */,
 				4EF29CD12F0EF3F7009DF042 /* StreakCalculator.swift */,
+				FF00000000000000000000001 /* ReductionPlan.swift */,
 				4E00FF242EC82F4500387ED5 /* Puff.swift */,
 				4E00FF292EC82F4500387ED7 /* PuffGrouping.swift */,
 				5E00FF322EC82F4500387ED9 /* StatisticsCalculator.swift */,
@@ -353,6 +356,7 @@
 				5E00FF332EC82F4500387EDA /* StatisticsCalculator.swift in Sources */,
 				4E00FF262EC82F4500387ED6 /* HistoryView.swift in Sources */,
 				4EF29CD22F0EF3F7009DF042 /* StreakCalculator.swift in Sources */,
+				FF00000000000000000000002 /* ReductionPlan.swift in Sources */,
 				B454AEF3383949D6840D8C22 /* EditPuffView.swift in Sources */,
 				4E00FF302EC82F4500387ED8 /* GoalSettingsView.swift in Sources */,
 				7E00FF372EC82F4500387EDE /* TrashView.swift in Sources */,

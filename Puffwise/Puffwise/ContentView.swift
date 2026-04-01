@@ -1,5 +1,6 @@
 import SwiftUI
 import WidgetKit
+import Charts
 
 struct ContentView: View {
     // @State holds the array of puffs in memory during runtime.
@@ -33,6 +34,15 @@ struct ContentView: View {
     // It's only updated when the current streak exceeds the stored best.
     @AppStorage("bestStreak") private var bestStreak: Int = 0
 
+    // Reduction mode state. When true, the effective daily goal is computed from the
+    // active ReductionPlan instead of the static dailyPuffGoal.
+    @AppStorage("reductionModeEnabled") private var reductionModeEnabled: Bool = false
+
+    // JSON-encoded ReductionPlan, written by GoalSettingsView when the user enables
+    // reduction mode. Stored in UserDefaults.standard (not shared) since the widget
+    // reads the pre-computed weekly target from dailyPuffGoal in the shared container.
+    @AppStorage("reductionPlanData") private var reductionPlanData: Data = Data()
+
     // Cached streak information to avoid redundant calculations.
     // Updated in updateStreakInfo() when puffs or dailyPuffGoal changes.
     @State private var streakInfo: StreakInfo = StreakInfo(
@@ -56,6 +66,31 @@ struct ContentView: View {
             // This handles edge cases like midnight crossings correctly
             calendar.isDate(puff.timestamp, inSameDayAs: now)
         }
+    }
+
+    // Puffs logged since the start of the current calendar week (locale-aware).
+    private var puffsThisWeek: [Puff] {
+        guard let weekInterval = Calendar.current.dateInterval(of: .weekOfYear, for: Date()) else { return [] }
+        return puffs.filter { weekInterval.contains($0.timestamp) }
+    }
+
+    // Decoded reduction plan, or nil when reduction mode is off or plan data is absent.
+    private var currentReductionPlan: ReductionPlan? {
+        guard reductionModeEnabled, !reductionPlanData.isEmpty else { return nil }
+        return try? JSONDecoder().decode(ReductionPlan.self, from: reductionPlanData)
+    }
+
+    // The daily goal used for both display and streak calculation.
+    // When reduction mode is active this is the dynamic effective daily goal;
+    // otherwise it is the user's static dailyPuffGoal setting.
+    private var activeGoal: Int {
+        guard let plan = currentReductionPlan else { return dailyPuffGoal }
+        return plan.effectiveDailyGoal(puffsThisWeek: puffsThisWeek.count)
+    }
+
+    // Trajectory data for the reduction curve chart. Empty when reduction mode is off.
+    private var reductionTrajectory: [(week: Int, goal: Int)] {
+        currentReductionPlan?.trajectoryPoints() ?? []
     }
 
     // Load puffs from UserDefaults
@@ -136,7 +171,7 @@ struct ContentView: View {
     // Called when puffs change, goal changes, or on app launch.
     private func updateStreakInfo() {
         // Calculate streak once
-        let info = puffs.calculateStreak(dailyGoal: dailyPuffGoal, storedBestStreak: bestStreak)
+        let info = puffs.calculateStreak(dailyGoal: activeGoal, storedBestStreak: bestStreak)
 
         // Update cached state
         streakInfo = info
@@ -179,11 +214,19 @@ struct ContentView: View {
                         .foregroundStyle(.primary)
 
                     // Goal progress display
-                    // Shows current puff count relative to the daily goal (e.g., "7 of 10 puffs")
-                    // Updates automatically when puffs are logged or goal is changed in settings
-                    Text("\(todaysPuffs.count) of \(dailyPuffGoal) puffs")
+                    // When reduction mode is off, shows the static daily goal.
+                    // When on, shows the effective daily goal (remaining weekly budget ÷ days left).
+                    Text("\(todaysPuffs.count) of \(activeGoal) puffs")
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
+
+                    // Reduction mode status — week number and weekly target
+                    if let plan = currentReductionPlan {
+                        let weekNum = plan.weeksElapsed() + 1
+                        Text("Week \(weekNum) — \(plan.currentWeekTarget()) puffs/day target")
+                            .font(.caption)
+                            .foregroundStyle(.blue.opacity(0.8))
+                    }
 
                     // Statistics display
                     // Shows 7-day and 30-day averages to help users track trends
@@ -228,6 +271,17 @@ struct ContentView: View {
                         }
                         .padding(.top, 8)
                     }
+                }
+
+                // Reduction curve chart — visible only when reduction mode is active.
+                // Shows the compounding weekly goal trajectory from the current week to the
+                // minimum floor. A dashed rule marks where the user is today.
+                if !reductionTrajectory.isEmpty, let plan = currentReductionPlan {
+                    ReductionCurveView(
+                        trajectory: reductionTrajectory,
+                        currentWeekOffset: plan.weeksElapsed()
+                    )
+                    .padding(.top, 8)
                 }
 
                 // Main action button
@@ -310,6 +364,10 @@ struct ContentView: View {
             .onChange(of: dailyPuffGoal) { _, _ in
                 updateStreakInfo()
             }
+            // When reduction mode is toggled or the plan changes, recalculate the streak
+            // so it immediately reflects the new effective daily goal.
+            .onChange(of: reductionModeEnabled) { _, _ in updateStreakInfo() }
+            .onChange(of: reductionPlanData) { _, _ in updateStreakInfo() }
             // .onChange monitors the deleted puffs array for changes.
             // When items are added, removed, or restored, automatically save to UserDefaults.
             .onChange(of: deletedPuffs) { _, _ in
@@ -329,4 +387,78 @@ struct ContentView: View {
 
 #Preview {
     ContentView()
+}
+
+// MARK: - Reduction Curve Chart
+
+/// A compact line chart showing the compounding weekly goal reduction trajectory.
+///
+/// Displayed on the home screen when reduction mode is active. The X axis shows
+/// week numbers relative to the plan's start; the Y axis shows the daily puff goal
+/// for that week. A dashed rule marks the current week so users can see progress.
+struct ReductionCurveView: View {
+    let trajectory: [(week: Int, goal: Int)]
+    let currentWeekOffset: Int
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text("Reduction Plan")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+
+            Chart {
+                // Goal trajectory line
+                ForEach(trajectory, id: \.week) { point in
+                    LineMark(
+                        x: .value("Week", point.week),
+                        y: .value("Goal", point.goal)
+                    )
+                    .foregroundStyle(.blue)
+                    .interpolationMethod(.catmullRom)
+
+                    // Filled area under the line for visual weight
+                    AreaMark(
+                        x: .value("Week", point.week),
+                        y: .value("Goal", point.goal)
+                    )
+                    .foregroundStyle(.blue.opacity(0.08))
+                    .interpolationMethod(.catmullRom)
+                }
+
+                // Dashed rule marking the current week
+                RuleMark(x: .value("Now", currentWeekOffset))
+                    .foregroundStyle(.orange)
+                    .lineStyle(StrokeStyle(lineWidth: 1.5, dash: [4, 3]))
+                    .annotation(position: .top, alignment: .leading) {
+                        Text("Now")
+                            .font(.caption2)
+                            .foregroundStyle(.orange)
+                    }
+            }
+            .frame(height: 120)
+            .chartXAxis {
+                AxisMarks(values: .automatic(desiredCount: 5)) { value in
+                    AxisGridLine()
+                    AxisValueLabel {
+                        if let week = value.as(Int.self) {
+                            Text("W\(week)")
+                                .font(.caption2)
+                        }
+                    }
+                }
+            }
+            .chartYAxis {
+                AxisMarks(values: .automatic(desiredCount: 4)) { value in
+                    AxisGridLine()
+                    AxisValueLabel {
+                        if let goal = value.as(Int.self) {
+                            Text("\(goal)")
+                                .font(.caption2)
+                        }
+                    }
+                }
+            }
+        }
+        .padding(.horizontal, 4)
+    }
 }

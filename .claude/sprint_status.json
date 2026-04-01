@@ -1,9 +1,9 @@
 {
   "status": "none",
-  "saved_at": "2026-03-29T00:00:00Z",
-  "branch": "feature/daily-count-widget",
-  "sprint": "Sprint 1: Home Screen Widget",
-  "last_completed_task": "none — sprint framework just established",
-  "next_step": "Run /startup-check, then /plan-sprint for Sprint 1 to formalize the widget work",
-  "notes": "Widget branch already exists. Core app foundation is complete. Sprint framework established 2026-03-29."
+  "saved_at": "2026-03-31T00:00:00Z",
+  "branch": "feature/20260331_Sprint_2",
+  "sprint": "Sprint 2: Reduction Goal Mode",
+  "last_completed_task": "All tasks complete — PR pending merge",
+  "next_step": "Merge PR, then run /startup-check and /plan-sprint for Sprint 3 (F2: iCloud Sync or F5: Shareable Progress Cards)",
+  "notes": "Sprint 2 delivered: ReductionPlan model, dynamic effective daily goal, GoalSettingsView settings section, home screen trajectory chart. 109 tests passing. F1 (HealthKit) skipped — no suitable sample type and requires paid dev account."
 }

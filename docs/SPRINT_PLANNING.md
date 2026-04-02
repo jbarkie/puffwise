@@ -76,6 +76,18 @@ Typical sprint duration: 1-4 hours of Claude execution time.
 
 ---
 
+## Xcode Project Registration
+
+Whenever a sprint task creates a new Swift source file, add an explicit sub-task for registering it in `Puffwise.xcodeproj/project.pbxproj`. This requires three edits to the project file:
+
+1. A `PBXFileReference` entry
+2. A `PBXBuildFile` entry
+3. An entry in the `PBXSourcesBuildPhase` sources list
+
+Assign this sub-task to **Haiku** (Score ~5 — mechanical, 1 file, familiar pattern). Omitting it causes a build failure that blocks subsequent tasks.
+
+---
+
 ## Naming Conventions
 
 - **Branch**: `feature/YYYYMMDD_Sprint_N` (e.g., `feature/20260329_Sprint_2`)

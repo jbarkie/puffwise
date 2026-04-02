@@ -57,7 +57,11 @@ The following features were built before the sprint framework was established:
 - **Branch**: feature/20260331_Sprint_2
 - **Status**: Completed — pending PR merge
 - **Goal**: Automatic compounding weekly goal reduction with dynamic daily allowance
-- **Outcome**: ReductionPlan model with compounding reduction, effective daily goal accounting for puffs already logged in the week, settings UI in GoalSettingsView, and LineMark trajectory chart on the home screen. 109 tests passing.
+- **Outcome**: ReductionPlan model with compounding reduction, effective daily goal accounting for puffs already logged in the week, settings UI in GoalSettingsView, and LineMark trajectory chart on the home screen. 136 tests passing (27 new).
+- **Lessons Learned**:
+  - Read each phase of SPRINT_EXECUTION_WORKFLOW.md before executing it — do not rely on memory
+  - Tests and documentation are part of the definition of done; a task is not complete without them
+  - New Swift files require explicit xcodeproj registration — make it a named task in the plan
 
 ---
 

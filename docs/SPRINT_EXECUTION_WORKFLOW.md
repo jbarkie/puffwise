@@ -82,9 +82,10 @@ Follow the process in `.claude/commands/commit-push-pr.md`:
 
 1. Stage relevant files (specific files, never `git add -A`)
 2. Commit with format: `type: description (#issue)` — no contractions
-3. Push to feature branch: `git push -u origin feature/YYYYMMDD_Sprint_N`
-4. Create PR targeting **main** (never skip this step)
-5. PR description follows the template in `CLAUDE.md`
+3. Update `README.md` and `CLAUDE.md` for any new features, files, or test count changes — commit alongside code
+4. Push to feature branch: `git push -u origin feature/YYYYMMDD_Sprint_N`
+5. Create PR targeting **main** (never skip this step)
+6. PR description follows the template in `CLAUDE.md`
 
 ---
 

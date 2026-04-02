@@ -15,6 +15,8 @@ All development follows a sprint-based Agile/Scrum workflow. See `docs/SPRINT_EX
 
 **Startup**: Run `/startup-check` at the start of every session to restore sprint context.
 
+**Phase Discipline**: Before starting each phase of a sprint, read the corresponding phase in `docs/SPRINT_EXECUTION_WORKFLOW.md` and confirm all steps are completed before moving to the next phase. Do not rely on memory of the workflow.
+
 **Branch Policy**:
 - Feature branches: `feature/YYYYMMDD_Sprint_N`
 - All PRs target **main**

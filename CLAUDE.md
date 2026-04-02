@@ -112,8 +112,10 @@ Use this concise format for PR descriptions:
 - CSV export for data backup and analysis
 - Daily reminder notifications with configurable time
 - Automatic persistence via UserDefaults
+- Home screen widget (circular progress ring, count vs. goal, App Group data sharing)
+- Reduction Goal Mode (compounding weekly goal reduction, dynamic daily allowance, trajectory chart)
 
-**Testing:** 109 tests covering models, grouping logic, goal settings, edit/delete, statistics, streaks, undo/trash, CSV export, and notifications.
+**Testing:** 136 tests covering models, grouping logic, goal settings, edit/delete, statistics, streaks, undo/trash, CSV export, notifications, widget, and reduction plan.
 
 ### Project Structure
 
@@ -132,12 +134,14 @@ Puffwise/
 │   ├── PuffGrouping.swift      # Data grouping utilities (day/week/month)
 │   ├── StatisticsCalculator.swift  # Statistics calculation (7-day/30-day averages)
 │   ├── StreakCalculator.swift  # Streak calculation logic
+│   ├── ReductionPlan.swift     # Compounding weekly reduction model and dynamic daily goal
 │   ├── CSVExporter.swift       # CSV export for data backup
 │   ├── NotificationManager.swift   # Daily reminder notification scheduling
+│   ├── SharedDefaults.swift    # UserDefaults App Group extension for widget data sharing
 │   ├── Assets.xcassets/        # App icons and colors
 │   └── Preview Content/        # SwiftUI preview assets
 └── PuffwiseTests/
-    └── PuffwiseTests.swift  # Comprehensive test suite (98 tests)
+    └── PuffwiseTests.swift  # Comprehensive test suite (136 tests)
 ```
 
 ### Build Commands

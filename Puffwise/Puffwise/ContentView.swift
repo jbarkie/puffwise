@@ -223,7 +223,7 @@ struct ContentView: View {
                     // Reduction mode status — week number and weekly target
                     if let plan = currentReductionPlan {
                         let weekNum = plan.weeksElapsed() + 1
-                        Text("Week \(weekNum) — \(plan.currentWeekTarget()) puffs/day target")
+                        Text("Reduction Plan Week \(weekNum) — \(plan.currentWeekTarget()) puffs/day target")
                             .font(.caption)
                             .foregroundStyle(.blue.opacity(0.8))
                     }
@@ -401,10 +401,13 @@ struct ReductionCurveView: View {
     let currentWeekOffset: Int
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
+        VStack(alignment: .leading, spacing: 2) {
             Text("Reduction Plan")
                 .font(.caption)
                 .foregroundStyle(.secondary)
+            Text("Daily goal (puffs) by week")
+                .font(.caption2)
+                .foregroundStyle(.tertiary)
 
             Chart {
                 // Goal trajectory line
@@ -429,13 +432,14 @@ struct ReductionCurveView: View {
                 RuleMark(x: .value("Now", currentWeekOffset))
                     .foregroundStyle(.orange)
                     .lineStyle(StrokeStyle(lineWidth: 1.5, dash: [4, 3]))
-                    .annotation(position: .top, alignment: .leading) {
+                    .annotation(position: .overlay, alignment: .topLeading) {
                         Text("Now")
                             .font(.caption2)
                             .foregroundStyle(.orange)
                     }
             }
             .frame(height: 120)
+            .chartXScale(domain: 0...(trajectory.last?.week ?? 0))
             .chartXAxis {
                 AxisMarks(values: .automatic(desiredCount: 5)) { value in
                     AxisGridLine()

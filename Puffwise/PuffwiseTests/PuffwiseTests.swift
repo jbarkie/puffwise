@@ -2856,6 +2856,37 @@ struct ReductionPlanTests {
         }
     }
 
+    /// When startingGoal equals minimumFloor the trajectory has only one point —
+    /// the floor is already hit at week 0. This is the root cause of the stale-snapshot
+    /// bug where the user changed dailyPuffGoal after enabling reduction mode.
+    @Test func trajectoryHasOnePointWhenStartingGoalEqualsFloor() async throws {
+        let plan = ReductionPlan(
+            startDate: date(year: 2026, month: 1, day: 1),
+            startingGoal: 50,
+            weeklyReductionPercent: 16,
+            minimumFloor: 50
+        )
+        let points = plan.trajectoryPoints()
+        #expect(points.count == 1)
+        #expect(points.first?.goal == 50)
+    }
+
+    /// After restarting the plan with a higher starting goal the trajectory spans
+    /// multiple weeks, confirming that restartPlanWithCurrentGoal() resolves the bug.
+    @Test func trajectorySpansMultipleWeeksAfterRestartWithHigherGoal() async throws {
+        let plan = ReductionPlan(
+            startDate: Date(),
+            startingGoal: 100,
+            weeklyReductionPercent: 16,
+            minimumFloor: 50
+        )
+        let points = plan.trajectoryPoints()
+        // 100 × 0.84^n reaches 50 after ~4 weeks, so there must be more than 1 point
+        #expect(points.count > 1)
+        #expect(points.first?.goal == 100)
+        #expect(points.last?.goal == 50)
+    }
+
     // MARK: - weeksElapsed
 
     /// A plan started in the current week reports 0 weeks elapsed.

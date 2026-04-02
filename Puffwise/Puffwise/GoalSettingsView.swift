@@ -104,6 +104,21 @@ struct GoalSettingsView: View {
         return try? JSONDecoder().decode(ReductionPlan.self, from: reductionPlanData)
     }
 
+    /// Restarts the plan from today using the current daily goal as the new starting point.
+    /// Called when the user changes the daily goal while reduction mode is already on,
+    /// so the trajectory reflects the revised baseline rather than a stale snapshot.
+    private func restartPlanWithCurrentGoal() {
+        guard reductionModeEnabled,
+              let encoded = try? JSONEncoder().encode(ReductionPlan(
+                  startDate: Date(),
+                  startingGoal: dailyPuffGoal,
+                  weeklyReductionPercent: Double(weeklyReductionPercent),
+                  minimumFloor: minimumFloor
+              ))
+        else { return }
+        reductionPlanData = encoded
+    }
+
     /// Saves an updated plan to UserDefaults, preserving the original start date and goal.
     /// Called when the user adjusts weekly % or floor while reduction mode is already on.
     private func updateStoredPlan() {
@@ -171,6 +186,7 @@ struct GoalSettingsView: View {
                                 .foregroundColor(.secondary)
                         }
                     }
+                    .onChange(of: dailyPuffGoal) { _, _ in restartPlanWithCurrentGoal() }
                 } header: {
                     // Section header appears above the section in small caps
                     Text("Target")

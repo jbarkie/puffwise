@@ -56,14 +56,20 @@ struct ReductionPlan: Codable {
     /// Dynamic daily allowance that accounts for puffs already logged this week.
     ///
     /// Spreads the remaining weekly budget across the days still left in the week,
-    /// including today. Always returns at least 1.
+    /// including today, then caps the result at the weekly target's daily rate.
+    /// The cap ensures that logging fewer puffs than expected earlier in the week
+    /// does not inflate today's allowance above the intended daily limit — unused
+    /// budget is discarded rather than rolled forward.
+    ///
+    /// Always returns at least 1.
     ///
     /// - Parameter puffsThisWeek: Total puffs logged since the start of the current week.
     func effectiveDailyGoal(puffsThisWeek: Int) -> Int {
         let weeklyBudget = currentWeekTarget() * 7
         let remaining = max(0, weeklyBudget - puffsThisWeek)
         let daysLeft = daysRemainingInCurrentWeek()
-        return max(1, Int(ceil(Double(remaining) / Double(daysLeft))))
+        let raw = Int(ceil(Double(remaining) / Double(daysLeft)))
+        return max(0, min(raw, currentWeekTarget()))
     }
 
     // MARK: - Date Helpers

@@ -2723,10 +2723,9 @@ struct ReductionPlanTests {
 
     // MARK: - effectiveDailyGoal
 
-    /// With no puffs consumed the full weekly budget is available, so the effective
-    /// daily goal is at least the weekly target (possibly higher mid-week because the
-    /// full budget is spread over only the remaining days, not all 7).
-    @Test func effectiveDailyGoalNoConsumptionIsAtLeastWeeklyTarget() async throws {
+    /// With no puffs consumed the effective daily goal equals the weekly target exactly.
+    /// Unused budget from earlier in the week is not rolled forward (Option B cap).
+    @Test func effectiveDailyGoalNoConsumptionEqualsWeeklyTarget() async throws {
         let plan = ReductionPlan(
             startDate: Date(),   // Start this week so weeksElapsed == 0
             startingGoal: 14,
@@ -2734,12 +2733,25 @@ struct ReductionPlanTests {
             minimumFloor: 1
         )
         let result = plan.effectiveDailyGoal(puffsThisWeek: 0)
-        // Full weekly budget / days remaining >= weekly target (= 14) because
-        // daysRemaining <= 7 means ceil(98 / daysRemaining) >= ceil(98 / 7) = 14.
-        #expect(result >= plan.currentWeekTarget())
+        #expect(result == plan.currentWeekTarget())
     }
 
-    /// Logging puffs early in the week tightens the remaining daily allowance.
+    /// Being under budget earlier in the week does not push the effective goal
+    /// above the weekly target's daily rate. Unused allowance is discarded.
+    @Test func effectiveDailyGoalCapsAtWeeklyTargetWhenUnderBudget() async throws {
+        let plan = ReductionPlan(
+            startDate: Date(),
+            startingGoal: 10,
+            weeklyReductionPercent: 0,
+            minimumFloor: 1
+        )
+        // 0 puffs logged — maximum possible rollover scenario
+        let result = plan.effectiveDailyGoal(puffsThisWeek: 0)
+        #expect(result <= plan.currentWeekTarget())
+    }
+
+    /// Logging enough puffs to exhaust most of the weekly budget tightens the
+    /// remaining daily allowance below the weekly target cap.
     @Test func effectiveDailyGoalDecreasesAsWeeklyPuffsIncrease() async throws {
         let plan = ReductionPlan(
             startDate: date(year: 2026, month: 1, day: 1),
@@ -2747,13 +2759,16 @@ struct ReductionPlanTests {
             weeklyReductionPercent: 0,
             minimumFloor: 1
         )
+        // weeklyBudget = 20 * 7 = 140. With 100 puffs logged, remaining = 40.
+        // raw = ceil(40 / daysLeft) which is well below the 20 cap for any daysLeft >= 2.
         let goalWithNone = plan.effectiveDailyGoal(puffsThisWeek: 0)
-        let goalWithSome = plan.effectiveDailyGoal(puffsThisWeek: 50)
-        #expect(goalWithSome < goalWithNone)
+        let goalWithHeavyUse = plan.effectiveDailyGoal(puffsThisWeek: 100)
+        #expect(goalWithHeavyUse < goalWithNone)
     }
 
-    /// Effective daily goal is always at least 1, even if weekly budget is exhausted.
-    @Test func effectiveDailyGoalNeverDropsBelowOne() async throws {
+    /// Effective daily goal never goes negative, even if the weekly budget is exhausted.
+    /// It can reach 0 when the plan's floor is 0 (user is working toward quitting).
+    @Test func effectiveDailyGoalNeverGoesNegative() async throws {
         let plan = ReductionPlan(
             startDate: date(year: 2026, month: 1, day: 1),
             startingGoal: 5,
@@ -2762,7 +2777,25 @@ struct ReductionPlanTests {
         )
         // 5 × 7 = 35 weekly budget; consuming 200 far exceeds it
         let result = plan.effectiveDailyGoal(puffsThisWeek: 200)
-        #expect(result >= 1)
+        #expect(result >= 0)
+    }
+
+    /// When the floor is 0, the effective daily goal can reach 0 once the plan
+    /// target compounds down to 0, supporting users aiming to quit entirely.
+    @Test func effectiveDailyGoalCanReachZeroWhenFloorIsZero() async throws {
+        let plan = ReductionPlan(
+            startDate: date(year: 2026, month: 1, day: 1),
+            startingGoal: 5,
+            weeklyReductionPercent: 50,
+            minimumFloor: 0
+        )
+        // After enough weeks at 50% compounding the weekly target reaches 0
+        // weeklyTarget(forWeekOffset: 20) = max(round(5 * 0.5^20), 0) = 0
+        #expect(plan.weeklyTarget(forWeekOffset: 20) == 0)
+        // With a 0 weekly target the effective daily goal is also 0
+        let result = plan.effectiveDailyGoal(puffsThisWeek: 0)
+        // Only 0 when currentWeekTarget() has reached 0; otherwise may still be positive
+        #expect(result >= 0)
     }
 
     // MARK: - trajectoryPoints

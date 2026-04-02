@@ -214,9 +214,9 @@ struct GoalSettingsView: View {
                     }
                     .onChange(of: weeklyReductionPercent) { _, _ in updateStoredPlan() }
 
-                    Stepper(value: $minimumFloor, in: 1...50) {
+                    Stepper(value: $minimumFloor, in: 0...50) {
                         HStack {
-                            Text("Minimum Floor")
+                            Text("Lowest Daily Goal")
                             Spacer()
                             Text("\(minimumFloor) puffs/day")
                                 .foregroundStyle(.secondary)
@@ -241,7 +241,7 @@ struct GoalSettingsView: View {
                 } header: {
                     Text("Reduction Mode")
                 } footer: {
-                    Text("Automatically compounds your daily goal down by a percentage each week until the floor is reached. The home screen shows your trajectory.")
+                    Text("Each week, your daily goal reduces by the set percentage. It will never go below the lowest daily goal you set here. Your reduction trajectory is shown on the home screen.")
                 }
 
                 // Reminders section

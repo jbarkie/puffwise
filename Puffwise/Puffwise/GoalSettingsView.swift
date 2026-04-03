@@ -220,44 +220,50 @@ struct GoalSettingsView: View {
                         }
                     ))
 
-                    Stepper(value: $weeklyReductionPercent, in: 1...20) {
-                        HStack {
-                            Text("Weekly Reduction")
-                            Spacer()
-                            Text("\(weeklyReductionPercent)%")
-                                .foregroundStyle(.secondary)
+                    if reductionModeEnabled {
+                        Stepper(value: $weeklyReductionPercent, in: 1...20) {
+                            HStack {
+                                Text("Weekly Reduction")
+                                Spacer()
+                                Text("\(weeklyReductionPercent)%")
+                                    .foregroundStyle(.secondary)
+                            }
                         }
-                    }
-                    .onChange(of: weeklyReductionPercent) { _, _ in updateStoredPlan() }
+                        .onChange(of: weeklyReductionPercent) { _, _ in updateStoredPlan() }
 
-                    Stepper(value: $minimumFloor, in: 0...50) {
-                        HStack {
-                            Text("Lowest Daily Goal")
-                            Spacer()
-                            Text("\(minimumFloor) puffs/day")
-                                .foregroundStyle(.secondary)
+                        Stepper(value: $minimumFloor, in: 0...50) {
+                            HStack {
+                                Text("Lowest Daily Goal")
+                                Spacer()
+                                Text("\(minimumFloor) puffs/day")
+                                    .foregroundStyle(.secondary)
+                            }
                         }
-                    }
-                    .onChange(of: minimumFloor) { _, _ in updateStoredPlan() }
+                        .onChange(of: minimumFloor) { _, _ in updateStoredPlan() }
 
-                    // Status row — shown only when a plan is active
-                    if let plan = currentReductionPlan {
-                        let weekNum = plan.weeksElapsed() + 1
-                        let nextDate = plan.nextReductionDate()
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text("Week \(weekNum) — \(plan.currentWeekTarget()) puffs/day target")
-                                .font(.subheadline)
-                                .foregroundStyle(.primary)
-                            Text("Next reduction: \(nextDate.formatted(date: .abbreviated, time: .omitted))")
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
+                        // Status row
+                        if let plan = currentReductionPlan {
+                            let weekNum = plan.weeksElapsed() + 1
+                            let nextDate = plan.nextReductionDate()
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("Week \(weekNum) — \(plan.currentWeekTarget()) puffs/day target")
+                                    .font(.subheadline)
+                                    .foregroundStyle(.primary)
+                                Text("Next reduction: \(nextDate.formatted(date: .abbreviated, time: .omitted))")
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            }
+                            .padding(.vertical, 2)
                         }
-                        .padding(.vertical, 2)
                     }
                 } header: {
                     Text("Reduction Mode")
                 } footer: {
-                    Text("Each week, your daily goal reduces by the set percentage. It will never go below the lowest daily goal you set here. Your reduction trajectory is shown on the home screen.")
+                    if reductionModeEnabled {
+                        Text("Each week, your daily goal reduces by the set percentage. It will never go below the lowest daily goal you set here. Your reduction trajectory is shown on the home screen.")
+                    } else {
+                        Text("Automatically reduce your daily goal each week using a compounding percentage.")
+                    }
                 }
 
                 // Reminders section

@@ -19,6 +19,7 @@ struct PuffwiseApp: App {
     /// The keys match those used by @AppStorage in GoalSettingsView.
     init() {
         migrateToSharedDefaultsIfNeeded()
+        syncReductionGoalIfNeeded()
 
         let reminderEnabled = UserDefaults.standard.bool(forKey: "reminderEnabled")
 
@@ -52,6 +53,21 @@ struct PuffwiseApp: App {
     /// We store a Bool in UserDefaults.standard to track whether migration has occurred.
     /// Keeping the flag in .standard (not .shared) ensures the migration runs exactly once
     /// per device, even if the shared container is cleared.
+    /// Writes the current week's reduction target to the shared container so the widget
+    /// reflects the active reduction plan rather than the static goal.
+    ///
+    /// Only runs when reduction mode is enabled. The widget reads `dailyPuffGoal` from
+    /// the shared container; this keeps that value in sync with the plan's weekly target
+    /// without requiring widget code changes.
+    func syncReductionGoalIfNeeded() {
+        guard UserDefaults.standard.bool(forKey: "reductionModeEnabled"),
+              let planData = UserDefaults.standard.data(forKey: "reductionPlanData"),
+              let plan = try? JSONDecoder().decode(ReductionPlan.self, from: planData)
+        else { return }
+
+        UserDefaults.shared.set(plan.currentWeekTarget(), forKey: "dailyPuffGoal")
+    }
+
     func migrateToSharedDefaultsIfNeeded() {
         let migrationKey = "didMigrateToSharedDefaults"
         guard !UserDefaults.standard.bool(forKey: migrationKey) else { return }

@@ -1422,33 +1422,58 @@ struct StreakCalculationTests {
         #expect(info.todayCount == 15)
     }
 
-    /// Tests that a day with no puffs breaks the streak.
+    /// Tests that a day with no puffs counts toward the streak.
+    ///
+    /// Zero puffs is always at or below any positive daily goal, so a day with no
+    /// logged puffs should extend the streak rather than break it.
     ///
     /// **What this tests:**
-    /// - Missing data (0 puffs) breaks streak
-    /// - Gap in tracking stops streak counting
-    @Test func dayWithNoPuffsBreaksStreak() async throws {
+    /// - 0 puffs on a day within the tracking period counts as goal met
+    /// - Streak bridges across a puff-free day
+    @Test func dayWithNoPuffsCountsTowardStreak() async throws {
         let calendar = Calendar.current
         // Use a fixed time (noon) to ensure puffs don't spill into adjacent days
-        let today = calendar.startOfDay(for: Date()).addingTimeInterval(12 * 3600)  // Noon today
+        let today = calendar.startOfDay(for: Date()).addingTimeInterval(12 * 3600)
         var puffs: [Puff] = []
 
         // Today: 5 puffs (meets goal)
         for minute in 0..<5 {
-            puffs.append(Puff(timestamp: today.addingTimeInterval(Double(minute * 60))))  // Add minutes
+            puffs.append(Puff(timestamp: today.addingTimeInterval(Double(minute * 60))))
         }
 
-        // Yesterday: NO PUFFS (missing day)
+        // Yesterday: NO PUFFS — 0 < goal of 10, so streak should continue
 
         // Day -2: 5 puffs (meets goal)
         let twoDaysAgo = calendar.date(byAdding: .day, value: -2, to: today)!
         for minute in 0..<5 {
-            puffs.append(Puff(timestamp: twoDaysAgo.addingTimeInterval(Double(minute * 60))))  // Add minutes
+            puffs.append(Puff(timestamp: twoDaysAgo.addingTimeInterval(Double(minute * 60))))
         }
 
         let info = puffs.calculateStreak(dailyGoal: 10, storedBestStreak: 0)
 
-        // Streak should be 1 (only today), yesterday's missing data breaks it
+        // Streak should be 3: today + yesterday (0 puffs) + day -2
+        #expect(info.currentStreak == 3)
+        #expect(info.todayGoalMet == true)
+    }
+
+    /// Tests that a streak stops at the day before tracking began, not at puff-free days.
+    ///
+    /// Days before the earliest logged puff predate tracking entirely and should
+    /// terminate the backward walk. Days within the tracking period with 0 puffs
+    /// should not.
+    @Test func streakStopsBeforeTrackingStarted() async throws {
+        let calendar = Calendar.current
+        let today = calendar.startOfDay(for: Date()).addingTimeInterval(12 * 3600)
+        var puffs: [Puff] = []
+
+        // Today: 5 puffs (meets goal) — this is the first day of tracking
+        for minute in 0..<5 {
+            puffs.append(Puff(timestamp: today.addingTimeInterval(Double(minute * 60))))
+        }
+
+        let info = puffs.calculateStreak(dailyGoal: 10, storedBestStreak: 0)
+
+        // Streak should be 1 — we stop at the earliest puff date, not keep going back
         #expect(info.currentStreak == 1)
         #expect(info.todayGoalMet == true)
     }
@@ -2640,6 +2665,386 @@ struct WidgetTests {
     /// Tests that isGoalMet is true with zero puffs (always on track when nothing logged).
     @Test func isGoalMetWithZeroPuffs() async throws {
         #expect(isGoalMet(puffCount: 0, goal: 10) == true)
+    }
+}
+
+// MARK: - ReductionPlan Tests
+
+/// Tests for the ReductionPlan model introduced in Sprint 2.
+///
+/// **What we are testing:**
+/// - Compounding weekly target formula
+/// - Minimum floor clamping
+/// - Effective daily goal calculation (remaining budget / days left)
+/// - Week elapsed counting
+/// - Trajectory point generation
+/// - Codable round-trip to ensure UserDefaults persistence is reliable
+struct ReductionPlanTests {
+
+    // MARK: - Helpers
+
+    /// Returns a date set to noon on the given components for deterministic tests.
+    private func date(year: Int, month: Int, day: Int) -> Date {
+        Calendar.current.date(from: DateComponents(year: year, month: month, day: day, hour: 12))!
+    }
+
+    // MARK: - weeklyTarget (compounding reduction)
+
+    /// Week 0 always returns the starting goal unchanged.
+    @Test func weeklyTargetWeekZeroReturnsStartingGoal() async throws {
+        let plan = ReductionPlan(
+            startDate: date(year: 2026, month: 1, day: 1),
+            startingGoal: 20,
+            weeklyReductionPercent: 10,
+            minimumFloor: 5
+        )
+        #expect(plan.weeklyTarget(forWeekOffset: 0) == 20)
+    }
+
+    /// After one week at 10% compounding: 20 × 0.9 = 18 (rounded).
+    @Test func weeklyTargetWeekOneReducesByRate() async throws {
+        let plan = ReductionPlan(
+            startDate: date(year: 2026, month: 1, day: 1),
+            startingGoal: 20,
+            weeklyReductionPercent: 10,
+            minimumFloor: 5
+        )
+        #expect(plan.weeklyTarget(forWeekOffset: 1) == 18)
+    }
+
+    /// After two weeks at 10%: 20 × 0.9² = 16.2 → rounds to 16.
+    @Test func weeklyTargetCompoundsCorrectly() async throws {
+        let plan = ReductionPlan(
+            startDate: date(year: 2026, month: 1, day: 1),
+            startingGoal: 20,
+            weeklyReductionPercent: 10,
+            minimumFloor: 5
+        )
+        #expect(plan.weeklyTarget(forWeekOffset: 2) == 16)
+    }
+
+    /// Goal never goes below the minimum floor, regardless of weeks elapsed.
+    @Test func weeklyTargetClampsToMinimumFloor() async throws {
+        let plan = ReductionPlan(
+            startDate: date(year: 2026, month: 1, day: 1),
+            startingGoal: 10,
+            weeklyReductionPercent: 50,
+            minimumFloor: 3
+        )
+        // After many weeks of 50% compounding the value would approach zero; floor = 3
+        #expect(plan.weeklyTarget(forWeekOffset: 20) == 3)
+    }
+
+    /// Negative week offset returns the starting goal (defensive).
+    @Test func weeklyTargetNegativeWeekReturnsStartingGoal() async throws {
+        let plan = ReductionPlan(
+            startDate: date(year: 2026, month: 1, day: 1),
+            startingGoal: 15,
+            weeklyReductionPercent: 5,
+            minimumFloor: 3
+        )
+        #expect(plan.weeklyTarget(forWeekOffset: -1) == 15)
+    }
+
+    // MARK: - effectiveDailyGoal
+
+    /// With no puffs consumed the effective daily goal equals the weekly target exactly.
+    /// Unused budget from earlier in the week is not rolled forward (Option B cap).
+    @Test func effectiveDailyGoalNoConsumptionEqualsWeeklyTarget() async throws {
+        let plan = ReductionPlan(
+            startDate: Date(),   // Start this week so weeksElapsed == 0
+            startingGoal: 14,
+            weeklyReductionPercent: 0,
+            minimumFloor: 1
+        )
+        let result = plan.effectiveDailyGoal(puffsThisWeek: 0)
+        #expect(result == plan.currentWeekTarget())
+    }
+
+    /// Being under budget earlier in the week does not push the effective goal
+    /// above the weekly target's daily rate. Unused allowance is discarded.
+    @Test func effectiveDailyGoalCapsAtWeeklyTargetWhenUnderBudget() async throws {
+        let plan = ReductionPlan(
+            startDate: Date(),
+            startingGoal: 10,
+            weeklyReductionPercent: 0,
+            minimumFloor: 1
+        )
+        // 0 puffs logged — maximum possible rollover scenario
+        let result = plan.effectiveDailyGoal(puffsThisWeek: 0)
+        #expect(result <= plan.currentWeekTarget())
+    }
+
+    /// Logging enough puffs to exhaust most of the weekly budget tightens the
+    /// remaining daily allowance below the weekly target cap.
+    @Test func effectiveDailyGoalDecreasesAsWeeklyPuffsIncrease() async throws {
+        let plan = ReductionPlan(
+            startDate: date(year: 2026, month: 1, day: 1),
+            startingGoal: 20,
+            weeklyReductionPercent: 0,
+            minimumFloor: 1
+        )
+        // weeklyBudget = 20 * 7 = 140. With 125 puffs logged, remaining = 15.
+        // raw = ceil(15 / daysLeft) which is at most 15 (when daysLeft = 1), always
+        // below the 20 cap regardless of which day of the week the test runs on.
+        let goalWithNone = plan.effectiveDailyGoal(puffsThisWeek: 0)
+        let goalWithHeavyUse = plan.effectiveDailyGoal(puffsThisWeek: 125)
+        #expect(goalWithHeavyUse < goalWithNone)
+    }
+
+    /// Effective daily goal never goes negative, even if the weekly budget is exhausted.
+    /// It can reach 0 when the plan's floor is 0 (user is working toward quitting).
+    @Test func effectiveDailyGoalNeverGoesNegative() async throws {
+        let plan = ReductionPlan(
+            startDate: date(year: 2026, month: 1, day: 1),
+            startingGoal: 5,
+            weeklyReductionPercent: 0,
+            minimumFloor: 1
+        )
+        // 5 × 7 = 35 weekly budget; consuming 200 far exceeds it
+        let result = plan.effectiveDailyGoal(puffsThisWeek: 200)
+        #expect(result >= 0)
+    }
+
+    /// When the floor is 0, the effective daily goal can reach 0 once the plan
+    /// target compounds down to 0, supporting users aiming to quit entirely.
+    @Test func effectiveDailyGoalCanReachZeroWhenFloorIsZero() async throws {
+        let plan = ReductionPlan(
+            startDate: date(year: 2026, month: 1, day: 1),
+            startingGoal: 5,
+            weeklyReductionPercent: 50,
+            minimumFloor: 0
+        )
+        // After enough weeks at 50% compounding the weekly target reaches 0
+        // weeklyTarget(forWeekOffset: 20) = max(round(5 * 0.5^20), 0) = 0
+        #expect(plan.weeklyTarget(forWeekOffset: 20) == 0)
+        // With a 0 weekly target the effective daily goal is also 0
+        let result = plan.effectiveDailyGoal(puffsThisWeek: 0)
+        // Only 0 when currentWeekTarget() has reached 0; otherwise may still be positive
+        #expect(result >= 0)
+    }
+
+    // MARK: - trajectoryPoints
+
+    /// Trajectory always starts at week 0 with the starting goal.
+    @Test func trajectoryStartsAtWeekZeroWithStartingGoal() async throws {
+        let plan = ReductionPlan(
+            startDate: date(year: 2026, month: 1, day: 1),
+            startingGoal: 20,
+            weeklyReductionPercent: 10,
+            minimumFloor: 5
+        )
+        let points = plan.trajectoryPoints()
+        #expect(points.first?.week == 0)
+        #expect(points.first?.goal == 20)
+    }
+
+    /// Trajectory stops at or before maxWeeks.
+    @Test func trajectoryRespectsMaxWeeksCap() async throws {
+        let plan = ReductionPlan(
+            startDate: date(year: 2026, month: 1, day: 1),
+            startingGoal: 20,
+            weeklyReductionPercent: 1,   // Very slow reduction to avoid early floor hit
+            minimumFloor: 1
+        )
+        let points = plan.trajectoryPoints(maxWeeks: 10)
+        #expect(points.count <= 11)  // weeks 0–10 inclusive
+    }
+
+    /// Trajectory stops early once the floor is reached, even before maxWeeks.
+    @Test func trajectoryStopsWhenFloorIsReached() async throws {
+        let plan = ReductionPlan(
+            startDate: date(year: 2026, month: 1, day: 1),
+            startingGoal: 10,
+            weeklyReductionPercent: 50,  // Aggressive reduction hits floor quickly
+            minimumFloor: 5
+        )
+        let points = plan.trajectoryPoints(maxWeeks: 26)
+        // All points at or after the floor is first hit should equal the floor
+        let lastGoal = points.last?.goal ?? 0
+        #expect(lastGoal == 5)
+        // After hitting the floor, there should be no further points
+        let belowFloor = points.filter { $0.goal < 5 }
+        #expect(belowFloor.isEmpty)
+    }
+
+    /// Goals in the trajectory are non-increasing (never go back up).
+    @Test func trajectoryIsMonotonicallyDecreasing() async throws {
+        let plan = ReductionPlan(
+            startDate: date(year: 2026, month: 1, day: 1),
+            startingGoal: 20,
+            weeklyReductionPercent: 5,
+            minimumFloor: 3
+        )
+        let points = plan.trajectoryPoints()
+        for i in 1..<points.count {
+            #expect(points[i].goal <= points[i - 1].goal)
+        }
+    }
+
+    /// When startingGoal equals minimumFloor the trajectory has only one point —
+    /// the floor is already hit at week 0. This is the root cause of the stale-snapshot
+    /// bug where the user changed dailyPuffGoal after enabling reduction mode.
+    @Test func trajectoryHasOnePointWhenStartingGoalEqualsFloor() async throws {
+        let plan = ReductionPlan(
+            startDate: date(year: 2026, month: 1, day: 1),
+            startingGoal: 50,
+            weeklyReductionPercent: 16,
+            minimumFloor: 50
+        )
+        let points = plan.trajectoryPoints()
+        #expect(points.count == 1)
+        #expect(points.first?.goal == 50)
+    }
+
+    /// After restarting the plan with a higher starting goal the trajectory spans
+    /// multiple weeks, confirming that restartPlanWithCurrentGoal() resolves the bug.
+    @Test func trajectorySpansMultipleWeeksAfterRestartWithHigherGoal() async throws {
+        let plan = ReductionPlan(
+            startDate: Date(),
+            startingGoal: 100,
+            weeklyReductionPercent: 16,
+            minimumFloor: 50
+        )
+        let points = plan.trajectoryPoints()
+        // 100 × 0.84^n reaches 50 after ~4 weeks, so there must be more than 1 point
+        #expect(points.count > 1)
+        #expect(points.first?.goal == 100)
+        #expect(points.last?.goal == 50)
+    }
+
+    // MARK: - isComplete
+
+    /// A plan where startingGoal already equals minimumFloor has nothing to reduce,
+    /// so isComplete must never return true regardless of time elapsed.
+    @Test func isCompleteIsFalseWhenStartingGoalEqualsFloor() async throws {
+        let plan = ReductionPlan(
+            startDate: date(year: 2020, month: 1, day: 1),  // Far in the past
+            startingGoal: 50,
+            weeklyReductionPercent: 10,
+            minimumFloor: 50
+        )
+        #expect(plan.isComplete == false)
+    }
+
+    /// A plan whose trajectory has been fully elapsed reports isComplete true.
+    @Test func isCompleteIsTrueWhenPastTrajectoryEnd() async throws {
+        // With 50% weekly reduction from 10 to floor 5, the trajectory ends around week 1.
+        // Using a startDate many years ago guarantees weeksElapsed >> lastWeek.
+        let plan = ReductionPlan(
+            startDate: date(year: 2020, month: 1, day: 1),
+            startingGoal: 10,
+            weeklyReductionPercent: 50,
+            minimumFloor: 5
+        )
+        #expect(plan.isComplete == true)
+    }
+
+    /// A plan started this week with a long trajectory is not yet complete.
+    @Test func isCompleteIsFalseForFreshPlan() async throws {
+        let plan = ReductionPlan(
+            startDate: Date(),
+            startingGoal: 100,
+            weeklyReductionPercent: 5,
+            minimumFloor: 10
+        )
+        #expect(plan.isComplete == false)
+    }
+
+    // MARK: - weeksElapsed
+
+    /// A plan started in the current week reports 0 weeks elapsed.
+    @Test func weeksElapsedZeroWhenStartedThisWeek() async throws {
+        // Using Date() so the start week == current week
+        let plan = ReductionPlan(
+            startDate: Date(),
+            startingGoal: 10,
+            weeklyReductionPercent: 5,
+            minimumFloor: 1
+        )
+        #expect(plan.weeksElapsed() == 0)
+    }
+
+    /// currentWeekTarget returns startingGoal when started this week (0 weeks elapsed).
+    @Test func currentWeekTargetEqualsStartingGoalInFirstWeek() async throws {
+        let plan = ReductionPlan(
+            startDate: Date(),
+            startingGoal: 20,
+            weeklyReductionPercent: 10,
+            minimumFloor: 5
+        )
+        #expect(plan.currentWeekTarget() == 20)
+    }
+
+    // MARK: - nextReductionDate
+
+    /// Next reduction date is always in the future (end of the current week).
+    @Test func nextReductionDateIsInTheFuture() async throws {
+        let plan = ReductionPlan(
+            startDate: Date(),
+            startingGoal: 10,
+            weeklyReductionPercent: 5,
+            minimumFloor: 1
+        )
+        #expect(plan.nextReductionDate() > Date())
+    }
+
+    /// Next reduction date is within the next 7 days.
+    @Test func nextReductionDateIsWithinOneWeek() async throws {
+        let plan = ReductionPlan(
+            startDate: Date(),
+            startingGoal: 10,
+            weeklyReductionPercent: 5,
+            minimumFloor: 1
+        )
+        let oneWeekFromNow = Date().addingTimeInterval(7 * 24 * 3600)
+        #expect(plan.nextReductionDate() <= oneWeekFromNow)
+    }
+
+    // MARK: - Codable round-trip
+
+    /// ReductionPlan survives JSON encode → decode with all fields intact.
+    ///
+    /// This is critical: the plan is persisted in UserDefaults as JSON, so
+    /// any serialization regression would corrupt stored reduction settings.
+    @Test func codableRoundTrip() async throws {
+        let original = ReductionPlan(
+            startDate: date(year: 2026, month: 3, day: 31),
+            startingGoal: 18,
+            weeklyReductionPercent: 7.5,
+            minimumFloor: 4
+        )
+
+        let encoded = try JSONEncoder().encode(original)
+        let decoded = try JSONDecoder().decode(ReductionPlan.self, from: encoded)
+
+        #expect(decoded.startingGoal == original.startingGoal)
+        #expect(decoded.weeklyReductionPercent == original.weeklyReductionPercent)
+        #expect(decoded.minimumFloor == original.minimumFloor)
+        // Date comparison: allow 1-second tolerance for floating-point rounding
+        #expect(abs(decoded.startDate.timeIntervalSince(original.startDate)) < 1)
+    }
+
+    // MARK: - Streak integration
+
+    /// Verifies that calculateStreak correctly uses a custom dailyGoal parameter,
+    /// which is how ContentView passes the activeGoal (effective daily goal from
+    /// the reduction plan) instead of the static dailyPuffGoal.
+    @Test func streakCalculationUsesPassedGoalParameter() async throws {
+        let calendar = Calendar.current
+        let today = calendar.startOfDay(for: Date()).addingTimeInterval(12 * 3600)
+
+        // 8 puffs today. With a static goal of 10 this meets the goal (streak = 1).
+        // With an effective goal of 5 this exceeds it (streak = 0).
+        let puffs = (0..<8).map { i in
+            Puff(timestamp: today.addingTimeInterval(Double(i * 60)))
+        }
+
+        let infoWithStaticGoal = puffs.calculateStreak(dailyGoal: 10, storedBestStreak: 0)
+        let infoWithEffectiveGoal = puffs.calculateStreak(dailyGoal: 5, storedBestStreak: 0)
+
+        #expect(infoWithStaticGoal.todayGoalMet == true)
+        #expect(infoWithEffectiveGoal.todayGoalMet == false)
     }
 }
 

@@ -81,10 +81,10 @@ extension Array where Element == Puff {
     /// can still see today's progress separately via the todayGoalMet and todayCount
     /// properties.
     ///
-    /// **Why do days with no puffs break the streak?**
-    /// A day with no logged puffs (0 puffs) is treated as a missed day that breaks the
-    /// streak. This maintains data integrity - if you weren't tracking, the streak doesn't
-    /// continue. This encourages consistent daily tracking.
+    /// **How are days with no puffs handled?**
+    /// A day with no logged puffs is treated as 0 puffs, which is at or below any
+    /// positive daily goal, so it extends the streak. Only days before the user's
+    /// first-ever puff stop the backward walk — those predate tracking entirely.
     ///
     /// - Parameters:
     ///   - dailyGoal: The target number of puffs per day (from @AppStorage)
@@ -174,14 +174,15 @@ extension Array where Element == Puff {
                     break
                 }
             } else {
-                // No data for this day
-                // Check if this is before tracking started or a genuinely missed day
+                // No data for this day — treat as 0 puffs logged.
                 if normalizedCheckDate < calendar.startOfDay(for: earliestPuffDate) {
-                    // This is before we started tracking. Stop here.
+                    // Before tracking started. Stop here.
                     break
                 } else {
-                    // This is a day with no puffs logged (missed day). Streak is broken.
-                    break
+                    // A day within the tracking period with no puffs is 0 puffs,
+                    // which is always at or below any positive daily goal.
+                    currentStreak += 1
+                    checkDate = calendar.date(byAdding: .day, value: -1, to: checkDate)!
                 }
             }
         }

@@ -20,8 +20,25 @@ jobs:
       - name: Run tests
         run: |
           cd Puffwise
+          # Resolve a concrete simulator UDID at runtime so the workflow is not
+          # tied to a specific device name or OS version that may vary by runner.
+          # Prefer iPhone 16; fall back to any available iPhone simulator.
+          SIM=$(xcrun simctl list devices available \
+            | grep -E "iPhone 16 \(" | head -1 \
+            | grep -oE '\([A-F0-9-]{36}\)' | tr -d '()')
+          if [ -z "$SIM" ]; then
+            SIM=$(xcrun simctl list devices available \
+              | grep -E "iPhone [0-9]+ \(" | head -1 \
+              | grep -oE '\([A-F0-9-]{36}\)' | tr -d '()')
+          fi
+          if [ -z "$SIM" ]; then
+            echo "No iPhone simulator found. Available destinations:"
+            xcodebuild -project Puffwise.xcodeproj -scheme Puffwise -showdestinations 2>&1 | head -40
+            exit 1
+          fi
+          echo "Using simulator UDID: ${SIM}"
           xcodebuild test \
             -project Puffwise.xcodeproj \
             -scheme Puffwise \
-            -destination 'platform=iOS Simulator,name=iPhone 16' \
+            -destination "id=${SIM}" \
             -enableCodeCoverage YES

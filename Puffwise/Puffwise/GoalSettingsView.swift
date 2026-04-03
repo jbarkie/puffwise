@@ -33,6 +33,14 @@ struct GoalSettingsView: View {
     @AppStorage("reminderHour") private var reminderHour: Int = 20
     @AppStorage("reminderMinute") private var reminderMinute: Int = 0
 
+    // Reduction mode settings.
+    // reductionPlanData holds a JSON-encoded ReductionPlan; it is created when the toggle
+    // is enabled and decoded for status display while reduction mode is active.
+    @AppStorage("reductionModeEnabled") private var reductionModeEnabled: Bool = false
+    @AppStorage("reductionPlanData") private var reductionPlanData: Data = Data()
+    @AppStorage("weeklyReductionPercent") private var weeklyReductionPercent: Int = 5
+    @AppStorage("minimumFloor") private var minimumFloor: Int = 5
+
     // @Environment(\.dismiss) provides access to the dismiss action from the SwiftUI environment.
     // This is the modern way to dismiss sheets, popovers, and other presented views.
     // When called, it dismisses the current view presentation.
@@ -42,6 +50,12 @@ struct GoalSettingsView: View {
     // State for CSV export error handling.
     // When file writing fails, we show an alert instead of silently failing.
     @State private var showingExportError = false
+
+    #if DEBUG
+    // Number of weeks to shift the plan's startDate backwards when testing.
+    // @AppStorage keeps the value alive across sheet dismissals within a session.
+    @AppStorage("debugSimulateWeekOffset") private var debugWeekOffset: Int = 0
+    #endif
     @State private var exportErrorMessage = ""
 
     // State for notification permission denied alert.
@@ -90,6 +104,42 @@ struct GoalSettingsView: View {
         )
     }
 
+    /// Decoded plan for status display; nil when mode is off or data is absent.
+    private var currentReductionPlan: ReductionPlan? {
+        guard reductionModeEnabled, !reductionPlanData.isEmpty else { return nil }
+        return try? JSONDecoder().decode(ReductionPlan.self, from: reductionPlanData)
+    }
+
+    /// Restarts the plan from today using the current daily goal as the new starting point.
+    /// Called when the user changes the daily goal while reduction mode is already on,
+    /// so the trajectory reflects the revised baseline rather than a stale snapshot.
+    private func restartPlanWithCurrentGoal() {
+        guard reductionModeEnabled,
+              let encoded = try? JSONEncoder().encode(ReductionPlan(
+                  startDate: Date(),
+                  startingGoal: dailyPuffGoal,
+                  weeklyReductionPercent: Double(weeklyReductionPercent),
+                  minimumFloor: minimumFloor
+              ))
+        else { return }
+        reductionPlanData = encoded
+    }
+
+    /// Saves an updated plan to UserDefaults, preserving the original start date and goal.
+    /// Called when the user adjusts weekly % or floor while reduction mode is already on.
+    private func updateStoredPlan() {
+        guard reductionModeEnabled,
+              let existing = currentReductionPlan,
+              let encoded = try? JSONEncoder().encode(ReductionPlan(
+                  startDate: existing.startDate,
+                  startingGoal: existing.startingGoal,
+                  weeklyReductionPercent: Double(weeklyReductionPercent),
+                  minimumFloor: minimumFloor
+              ))
+        else { return }
+        reductionPlanData = encoded
+    }
+
     /// Prepares the CSV export file for sharing.
     ///
     /// This function generates the CSV content and writes it to a temporary file.
@@ -122,25 +172,27 @@ struct GoalSettingsView: View {
             // - Accessibility support
             Form {
                 Section {
-                    // Stepper is a control for incrementing/decrementing numeric values.
-                    // Advantages over TextField for numeric input:
-                    // - Prevents invalid input (no need to parse/validate strings)
-                    // - Enforces min/max bounds automatically (in: 1...100)
-                    // - More accessible (clear +/- buttons for VoiceOver)
-                    // - Better UX for small adjustments
-                    //
-                    // The $ prefix creates a binding to dailyPuffGoal, allowing Stepper
-                    // to both read and write the value. Changes are automatically persisted
-                    // via @AppStorage.
-                    Stepper(value: $dailyPuffGoal, in: 1...100) {
+                    // Stepper with an embedded TextField lets the user both type a value
+                    // directly and use the +/- buttons for fine-grained adjustment.
+                    // TextField uses value:format: to bind directly to the Int without
+                    // manual string conversion. The onChange clamps values typed outside
+                    // the allowed range before they are persisted.
+                    Stepper(value: $dailyPuffGoal, in: 1...999) {
                         HStack {
                             Text("Daily Puff Goal")
                                 .font(.body)
                             Spacer()
-                            // Display the current value in a secondary color
-                            Text("\(dailyPuffGoal)")
-                                .foregroundColor(.secondary)
+                            TextField("", value: $dailyPuffGoal, format: .number)
+                                .keyboardType(.numberPad)
+                                .multilineTextAlignment(.trailing)
+                                .frame(width: 60)
+                                .foregroundStyle(.secondary)
                         }
+                    }
+                    .onChange(of: dailyPuffGoal) { _, newValue in
+                        let clamped = min(max(newValue, 1), 999)
+                        if clamped != newValue { dailyPuffGoal = clamped }
+                        restartPlanWithCurrentGoal()
                     }
                 } header: {
                     // Section header appears above the section in small caps
@@ -150,6 +202,147 @@ struct GoalSettingsView: View {
                     // Use footer for explanatory text or help content
                     Text("Set your target number of puffs per day. This helps you track your progress toward reducing usage.")
                 }
+
+                // Reduction Mode section
+                Section {
+                    Toggle("Auto-Reduce Goal", isOn: Binding(
+                        get: { reductionModeEnabled },
+                        set: { enabled in
+                            if enabled {
+                                // Snapshot the current daily goal as the plan's starting point.
+                                // weeklyReductionPercent and minimumFloor are read from @AppStorage.
+                                if let encoded = try? JSONEncoder().encode(ReductionPlan(
+                                    startDate: Date(),
+                                    startingGoal: dailyPuffGoal,
+                                    weeklyReductionPercent: Double(weeklyReductionPercent),
+                                    minimumFloor: minimumFloor
+                                )) {
+                                    reductionPlanData = encoded
+                                }
+                                reductionModeEnabled = true
+                            } else {
+                                reductionModeEnabled = false
+                                // Current goal is kept as-is — user decides whether to adjust manually.
+                            }
+                        }
+                    ))
+
+                    if reductionModeEnabled {
+                        Stepper(value: $weeklyReductionPercent, in: 1...20) {
+                            HStack {
+                                Text("Weekly Reduction")
+                                Spacer()
+                                Text("\(weeklyReductionPercent)%")
+                                    .foregroundStyle(.secondary)
+                            }
+                        }
+                        .onChange(of: weeklyReductionPercent) { _, _ in updateStoredPlan() }
+
+                        Stepper(value: $minimumFloor, in: 0...999) {
+                            HStack {
+                                Text("Lowest Daily Goal")
+                                Spacer()
+                                TextField("", value: $minimumFloor, format: .number)
+                                    .keyboardType(.numberPad)
+                                    .multilineTextAlignment(.trailing)
+                                    .frame(width: 60)
+                                    .foregroundStyle(.secondary)
+                                Text("puffs/day")
+                                    .foregroundStyle(.secondary)
+                            }
+                        }
+                        .onChange(of: minimumFloor) { _, newValue in
+                            let clamped = min(max(newValue, 0), 999)
+                            if clamped != newValue { minimumFloor = clamped }
+                            updateStoredPlan()
+                        }
+
+                        // Status row
+                        if let plan = currentReductionPlan {
+                            if plan.isComplete {
+                                HStack(spacing: 8) {
+                                    Image(systemName: "checkmark.circle.fill")
+                                        .foregroundStyle(.green)
+                                    Text("Plan complete — goal reached!")
+                                        .font(.subheadline)
+                                        .foregroundStyle(.primary)
+                                }
+                                .padding(.vertical, 2)
+                            } else {
+                                let weekNum = plan.weeksElapsed() + 1
+                                let nextDate = plan.nextReductionDate()
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text("Week \(weekNum) — \(plan.currentWeekTarget()) puffs/day target")
+                                        .font(.subheadline)
+                                        .foregroundStyle(.primary)
+                                    Text("Next reduction: \(nextDate.formatted(date: .abbreviated, time: .omitted))")
+                                        .font(.caption)
+                                        .foregroundStyle(.secondary)
+                                }
+                                .padding(.vertical, 2)
+                            }
+                        }
+                    }
+                } header: {
+                    Text("Reduction Mode")
+                } footer: {
+                    if reductionModeEnabled {
+                        Text("Each week, your daily goal reduces by the set percentage. It will never go below the lowest daily goal you set here. Your reduction trajectory is shown on the home screen.")
+                    } else {
+                        Text("Automatically reduce your daily goal each week using a compounding percentage.")
+                    }
+                }
+
+                // Developer section — stripped from release builds automatically.
+                // Backdates the plan's startDate so the app behaves as if N weeks
+                // have elapsed, letting you walk through the full reduction trajectory
+                // and test the completion state without waiting in real time.
+                #if DEBUG
+                Section {
+                    Stepper(value: $debugWeekOffset, in: 0...30) {
+                        HStack {
+                            Text("Simulate week offset")
+                            Spacer()
+                            Text(debugWeekOffset == 0 ? "Off" : "+\(debugWeekOffset) wks")
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                    Button("Apply to plan") {
+                        guard let existing = currentReductionPlan,
+                              let backdated = Calendar.current.date(
+                                  byAdding: .weekOfYear,
+                                  value: -debugWeekOffset,
+                                  to: Date()
+                              ),
+                              let encoded = try? JSONEncoder().encode(ReductionPlan(
+                                  startDate: backdated,
+                                  startingGoal: existing.startingGoal,
+                                  weeklyReductionPercent: existing.weeklyReductionPercent,
+                                  minimumFloor: existing.minimumFloor
+                              ))
+                        else { return }
+                        reductionPlanData = encoded
+                    }
+                    .disabled(currentReductionPlan == nil || debugWeekOffset == 0)
+                    Button("Reset plan to today", role: .destructive) {
+                        guard let existing = currentReductionPlan,
+                              let encoded = try? JSONEncoder().encode(ReductionPlan(
+                                  startDate: Date(),
+                                  startingGoal: existing.startingGoal,
+                                  weeklyReductionPercent: existing.weeklyReductionPercent,
+                                  minimumFloor: existing.minimumFloor
+                              ))
+                        else { return }
+                        reductionPlanData = encoded
+                        debugWeekOffset = 0
+                    }
+                    .disabled(currentReductionPlan == nil)
+                } header: {
+                    Text("Developer")
+                } footer: {
+                    Text("Debug only — not included in release builds. Shifts the plan start date backwards to simulate time passing.")
+                }
+                #endif
 
                 // Reminders section
                 // Toggle is a SwiftUI control for boolean on/off states.

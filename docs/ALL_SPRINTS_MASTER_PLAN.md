@@ -1,3 +1,4 @@
+
 # All Sprints Master Plan
 
 Last Updated: 2026-03-29
@@ -44,12 +45,23 @@ The following features were built before the sprint framework was established:
 
 ## Completed Sprints
 
-### Sprint 1: Home Screen Widget (~2026-03-XX)
+### Sprint 1: Home Screen Widget (2026-03-29)
 
 - **Branch**: feature/daily-count-widget
-- **Status**: In Progress
+- **Status**: Completed — merged via PR #26
 - **Goal**: Add iOS home screen widget showing today's puff count vs. goal
-- **Outcome**: TBD — sprint in progress
+- **Outcome**: Small widget with circular progress ring, puff count, and on-track status. Shared App Group container for data sharing between app and widget.
+
+### Sprint 2: Reduction Goal Mode (2026-03-31)
+
+- **Branch**: feature/20260331_Sprint_2
+- **Status**: Completed — pending PR merge
+- **Goal**: Automatic compounding weekly goal reduction with dynamic daily allowance
+- **Outcome**: ReductionPlan model with compounding reduction, effective daily goal accounting for puffs already logged in the week, settings UI in GoalSettingsView, and LineMark trajectory chart on the home screen. 144 tests passing (35 new).
+- **Lessons Learned**:
+  - Read each phase of SPRINT_EXECUTION_WORKFLOW.md before executing it — do not rely on memory
+  - Tests and documentation are part of the definition of done; a task is not complete without them
+  - New Swift files require explicit xcodeproj registration — make it a named task in the plan
 
 ---
 
@@ -71,13 +83,7 @@ The following features were built before the sprint framework was established:
 - Replace or supplement UserDefaults with CloudKit private database
 - Requires iCloud entitlement and conflict resolution strategy
 
-### F3. Reduction Goal Mode (~6 hrs) Priority 3
-
-- **Phase**: Core App
-- **Platform**: iOS
-- Automatic weekly goal reduction (e.g., reduce by 5% each week)
-- Visual progress curve showing target reduction trajectory
-- User can configure reduction rate and minimum floor
+### F3. Reduction Goal Mode — COMPLETED Sprint 2
 
 ### F4. Apple Watch Companion (~12 hrs) Priority 4
 

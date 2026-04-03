@@ -60,6 +60,12 @@ Puffwise is designed to provide a better user experience than existing habit-tra
   - Circular progress ring (green = on track, orange = over goal)
   - Updates immediately when a puff is logged in the app
   - Requires iOS 17.0+ and App Group entitlement
+- **Reduction Goal Mode**: Automatic compounding weekly goal reduction ✅
+  - Compounds the daily goal down by a configurable percentage each week
+  - Dynamic daily allowance adjusts based on puffs already logged this week
+  - Configurable weekly reduction rate (1–20%) and minimum floor
+  - Trajectory chart on the home screen showing weeks until the floor is reached
+  - Weekly target synced to the home screen widget
 - **Clean UI**: Minimal, distraction-free interface without ads ✅
 
 ## Technical Stack
@@ -88,6 +94,7 @@ Puffwise/
 │   ├── PuffGrouping.swift      # Data grouping utilities (day/week/month)
 │   ├── StatisticsCalculator.swift  # Statistics calculation (7-day/30-day averages)
 │   ├── StreakCalculator.swift  # Streak calculation logic
+│   ├── ReductionPlan.swift     # Compounding weekly reduction model and dynamic daily goal
 │   ├── CSVExporter.swift       # CSV export for data backup
 │   ├── NotificationManager.swift   # Daily reminder notification scheduling
 │   ├── SharedDefaults.swift    # UserDefaults App Group extension for widget data sharing
@@ -96,7 +103,7 @@ Puffwise/
 ├── PuffwiseWidget/
 │   └── PuffwiseWidget.swift    # Home screen widget (count + goal progress ring)
 └── PuffwiseTests/
-    └── PuffwiseTests.swift  # Comprehensive test suite (118 tests)
+    └── PuffwiseTests.swift  # Comprehensive test suite (144 tests)
 ```
 
 ## Getting Started

@@ -74,6 +74,7 @@ Automatically promote to next model if:
 | NotificationManager changes | Sonnet | Background scheduling complexity |
 | Streak/statistics algorithms | Sonnet | Edge cases, correctness-critical |
 | Widget extension work | Sonnet | New target, timeline entry complexity |
+| New Swift file → xcodeproj registration | Haiku | Mechanical edits to project.pbxproj; 3 required locations |
 | Deep algorithmic debugging | Opus | Root cause analysis |
 
 ---
@@ -84,10 +85,12 @@ Update this section after each sprint by running `/update-heuristics`.
 
 | Model | Sprints Tracked | Avg Score Accuracy | Success Rate |
 |-------|----------------|-------------------|--------------|
-| Haiku | 0 | N/A | N/A |
-| Sonnet | 0 | N/A | N/A |
+| Haiku | 1 | On target | 100% (1/1 tasks, no escalation) |
+| Sonnet | 1 | On target (Task 2.1 scored 31 but handled cleanly at Sonnet) | 100% (3/3 tasks, no escalation) |
 | Opus | 0 | N/A | N/A |
 
 *Success = task completed without escalation*
+
+**Sprint 2 Notes**: Task 2.1 (ReductionPlan model, score 31) exceeded the Opus threshold but was correctly kept at Sonnet per the Puffwise-specific patterns table (New Codable model → Sonnet). No escalation was needed. This validates overriding the threshold when a Puffwise-specific pattern applies.
 
 ---

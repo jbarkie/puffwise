@@ -103,6 +103,18 @@ struct ReductionPlan: Codable {
             ?? Date().addingTimeInterval(7 * 24 * 3600)
     }
 
+    // MARK: - Plan State
+
+    /// True when the user has reached the minimum floor after meaningful reduction occurred.
+    ///
+    /// A plan where `startingGoal` already equals `minimumFloor` has no trajectory
+    /// to complete, so it is never considered complete — only misconfigured.
+    var isComplete: Bool {
+        guard startingGoal > minimumFloor else { return false }
+        let lastWeek = trajectoryPoints().last?.week ?? 0
+        return weeksElapsed() >= lastWeek
+    }
+
     // MARK: - Chart Data
 
     /// Generates goal trajectory points from week 0 until the floor is reached,

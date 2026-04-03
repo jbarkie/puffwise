@@ -2887,6 +2887,44 @@ struct ReductionPlanTests {
         #expect(points.last?.goal == 50)
     }
 
+    // MARK: - isComplete
+
+    /// A plan where startingGoal already equals minimumFloor has nothing to reduce,
+    /// so isComplete must never return true regardless of time elapsed.
+    @Test func isCompleteIsFalseWhenStartingGoalEqualsFloor() async throws {
+        let plan = ReductionPlan(
+            startDate: date(year: 2020, month: 1, day: 1),  // Far in the past
+            startingGoal: 50,
+            weeklyReductionPercent: 10,
+            minimumFloor: 50
+        )
+        #expect(plan.isComplete == false)
+    }
+
+    /// A plan whose trajectory has been fully elapsed reports isComplete true.
+    @Test func isCompleteIsTrueWhenPastTrajectoryEnd() async throws {
+        // With 50% weekly reduction from 10 to floor 5, the trajectory ends around week 1.
+        // Using a startDate many years ago guarantees weeksElapsed >> lastWeek.
+        let plan = ReductionPlan(
+            startDate: date(year: 2020, month: 1, day: 1),
+            startingGoal: 10,
+            weeklyReductionPercent: 50,
+            minimumFloor: 5
+        )
+        #expect(plan.isComplete == true)
+    }
+
+    /// A plan started this week with a long trajectory is not yet complete.
+    @Test func isCompleteIsFalseForFreshPlan() async throws {
+        let plan = ReductionPlan(
+            startDate: Date(),
+            startingGoal: 100,
+            weeklyReductionPercent: 5,
+            minimumFloor: 10
+        )
+        #expect(plan.isComplete == false)
+    }
+
     // MARK: - weeksElapsed
 
     /// A plan started in the current week reports 0 weeks elapsed.

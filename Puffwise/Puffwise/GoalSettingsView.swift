@@ -253,17 +253,28 @@ struct GoalSettingsView: View {
 
                         // Status row
                         if let plan = currentReductionPlan {
-                            let weekNum = plan.weeksElapsed() + 1
-                            let nextDate = plan.nextReductionDate()
-                            VStack(alignment: .leading, spacing: 2) {
-                                Text("Week \(weekNum) — \(plan.currentWeekTarget()) puffs/day target")
-                                    .font(.subheadline)
-                                    .foregroundStyle(.primary)
-                                Text("Next reduction: \(nextDate.formatted(date: .abbreviated, time: .omitted))")
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
+                            if plan.isComplete {
+                                HStack(spacing: 8) {
+                                    Image(systemName: "checkmark.circle.fill")
+                                        .foregroundStyle(.green)
+                                    Text("Plan complete — goal reached!")
+                                        .font(.subheadline)
+                                        .foregroundStyle(.primary)
+                                }
+                                .padding(.vertical, 2)
+                            } else {
+                                let weekNum = plan.weeksElapsed() + 1
+                                let nextDate = plan.nextReductionDate()
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text("Week \(weekNum) — \(plan.currentWeekTarget()) puffs/day target")
+                                        .font(.subheadline)
+                                        .foregroundStyle(.primary)
+                                    Text("Next reduction: \(nextDate.formatted(date: .abbreviated, time: .omitted))")
+                                        .font(.caption)
+                                        .foregroundStyle(.secondary)
+                                }
+                                .padding(.vertical, 2)
                             }
-                            .padding(.vertical, 2)
                         }
                     }
                 } header: {

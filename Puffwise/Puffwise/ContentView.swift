@@ -273,15 +273,34 @@ struct ContentView: View {
                     }
                 }
 
-                // Reduction curve chart — visible only when reduction mode is active.
-                // Shows the compounding weekly goal trajectory from the current week to the
-                // minimum floor. A dashed rule marks where the user is today.
-                if !reductionTrajectory.isEmpty, let plan = currentReductionPlan {
-                    ReductionCurveView(
-                        trajectory: reductionTrajectory,
-                        currentWeekOffset: plan.weeksElapsed()
-                    )
-                    .padding(.top, 8)
+                // Reduction curve chart — visible only when reduction mode is active and
+                // the trajectory spans more than one week (a single point is not a useful chart).
+                // When the plan is complete the chart is replaced by a congratulatory card.
+                if let plan = currentReductionPlan {
+                    if plan.isComplete {
+                        VStack(spacing: 6) {
+                            Image(systemName: "star.fill")
+                                .font(.title2)
+                                .foregroundStyle(.yellow)
+                            Text("You did it!")
+                                .font(.headline)
+                            Text(plan.minimumFloor == 0
+                                 ? "You have reached zero puffs per day. That is an incredible achievement — be proud of the hard work and perseverance it took to get here."
+                                 : "You have reached your target of \(plan.minimumFloor) puffs/day. That is an incredible achievement — be proud of the hard work and perseverance it took to get here.")
+                                .font(.subheadline)
+                                .foregroundStyle(.secondary)
+                                .multilineTextAlignment(.center)
+                        }
+                        .padding(.vertical, 12)
+                        .padding(.horizontal, 8)
+                        .padding(.top, 8)
+                    } else if reductionTrajectory.count > 1 {
+                        ReductionCurveView(
+                            trajectory: reductionTrajectory,
+                            currentWeekOffset: plan.weeksElapsed()
+                        )
+                        .padding(.top, 8)
+                    }
                 }
 
                 // Main action button
@@ -400,6 +419,14 @@ struct ReductionCurveView: View {
     let trajectory: [(week: Int, goal: Int)]
     let currentWeekOffset: Int
 
+    // Clamp the Now marker so it never escapes the chart's x-domain.
+    // This guards against a plan that was active longer than the trajectory length
+    // (e.g. a very slow reduction where the user is still within the chart range
+    // but the offset slightly overshoots due to rounding).
+    private var clampedWeekOffset: Int {
+        min(currentWeekOffset, trajectory.last?.week ?? currentWeekOffset)
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 2) {
             Text("Reduction Plan")
@@ -428,8 +455,8 @@ struct ReductionCurveView: View {
                     .interpolationMethod(.catmullRom)
                 }
 
-                // Dashed rule marking the current week
-                RuleMark(x: .value("Now", currentWeekOffset))
+                // Dashed rule marking the current week, clamped to the chart domain
+                RuleMark(x: .value("Now", clampedWeekOffset))
                     .foregroundStyle(.orange)
                     .lineStyle(StrokeStyle(lineWidth: 1.5, dash: [4, 3]))
                     .annotation(position: .overlay, alignment: .topLeading) {

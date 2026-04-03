@@ -1422,33 +1422,58 @@ struct StreakCalculationTests {
         #expect(info.todayCount == 15)
     }
 
-    /// Tests that a day with no puffs breaks the streak.
+    /// Tests that a day with no puffs counts toward the streak.
+    ///
+    /// Zero puffs is always at or below any positive daily goal, so a day with no
+    /// logged puffs should extend the streak rather than break it.
     ///
     /// **What this tests:**
-    /// - Missing data (0 puffs) breaks streak
-    /// - Gap in tracking stops streak counting
-    @Test func dayWithNoPuffsBreaksStreak() async throws {
+    /// - 0 puffs on a day within the tracking period counts as goal met
+    /// - Streak bridges across a puff-free day
+    @Test func dayWithNoPuffsCountsTowardStreak() async throws {
         let calendar = Calendar.current
         // Use a fixed time (noon) to ensure puffs don't spill into adjacent days
-        let today = calendar.startOfDay(for: Date()).addingTimeInterval(12 * 3600)  // Noon today
+        let today = calendar.startOfDay(for: Date()).addingTimeInterval(12 * 3600)
         var puffs: [Puff] = []
 
         // Today: 5 puffs (meets goal)
         for minute in 0..<5 {
-            puffs.append(Puff(timestamp: today.addingTimeInterval(Double(minute * 60))))  // Add minutes
+            puffs.append(Puff(timestamp: today.addingTimeInterval(Double(minute * 60))))
         }
 
-        // Yesterday: NO PUFFS (missing day)
+        // Yesterday: NO PUFFS — 0 < goal of 10, so streak should continue
 
         // Day -2: 5 puffs (meets goal)
         let twoDaysAgo = calendar.date(byAdding: .day, value: -2, to: today)!
         for minute in 0..<5 {
-            puffs.append(Puff(timestamp: twoDaysAgo.addingTimeInterval(Double(minute * 60))))  // Add minutes
+            puffs.append(Puff(timestamp: twoDaysAgo.addingTimeInterval(Double(minute * 60))))
         }
 
         let info = puffs.calculateStreak(dailyGoal: 10, storedBestStreak: 0)
 
-        // Streak should be 1 (only today), yesterday's missing data breaks it
+        // Streak should be 3: today + yesterday (0 puffs) + day -2
+        #expect(info.currentStreak == 3)
+        #expect(info.todayGoalMet == true)
+    }
+
+    /// Tests that a streak stops at the day before tracking began, not at puff-free days.
+    ///
+    /// Days before the earliest logged puff predate tracking entirely and should
+    /// terminate the backward walk. Days within the tracking period with 0 puffs
+    /// should not.
+    @Test func streakStopsBeforeTrackingStarted() async throws {
+        let calendar = Calendar.current
+        let today = calendar.startOfDay(for: Date()).addingTimeInterval(12 * 3600)
+        var puffs: [Puff] = []
+
+        // Today: 5 puffs (meets goal) — this is the first day of tracking
+        for minute in 0..<5 {
+            puffs.append(Puff(timestamp: today.addingTimeInterval(Double(minute * 60))))
+        }
+
+        let info = puffs.calculateStreak(dailyGoal: 10, storedBestStreak: 0)
+
+        // Streak should be 1 — we stop at the earliest puff date, not keep going back
         #expect(info.currentStreak == 1)
         #expect(info.todayGoalMet == true)
     }

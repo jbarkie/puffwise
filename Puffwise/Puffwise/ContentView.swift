@@ -93,6 +93,27 @@ struct ContentView: View {
         currentReductionPlan?.trajectoryPoints() ?? []
     }
 
+    // MARK: - Completion Actions
+
+    /// Locks the achieved floor as the static daily goal and exits reduction mode.
+    /// The completed plan is erased; the user continues with a fixed goal.
+    private func completePlanKeepingGoal() {
+        guard let plan = currentReductionPlan else { return }
+        dailyPuffGoal = plan.minimumFloor
+        reductionModeEnabled = false
+        reductionPlanData = Data()
+    }
+
+    /// Locks the achieved floor as the static daily goal, exits reduction mode,
+    /// and opens Goal Settings so the user can configure a brand-new plan.
+    private func completePlanStartNew() {
+        guard let plan = currentReductionPlan else { return }
+        dailyPuffGoal = plan.minimumFloor
+        reductionModeEnabled = false
+        reductionPlanData = Data()
+        showingGoalSettings = true
+    }
+
     // Load puffs from UserDefaults
     // This function reads the stored JSON data and decodes it back into an array of Puff objects.
     // Reads from UserDefaults.shared (App Group container) so the widget extension can access
@@ -278,7 +299,7 @@ struct ContentView: View {
                 // When the plan is complete the chart is replaced by a congratulatory card.
                 if let plan = currentReductionPlan {
                     if plan.isComplete {
-                        VStack(spacing: 6) {
+                        VStack(spacing: 10) {
                             Image(systemName: "star.fill")
                                 .font(.title2)
                                 .foregroundStyle(.yellow)
@@ -291,6 +312,30 @@ struct ContentView: View {
                                 .foregroundStyle(.secondary)
                                 .multilineTextAlignment(.center)
                                 .fixedSize(horizontal: false, vertical: true)
+
+                            Divider()
+                                .padding(.vertical, 2)
+
+                            // Prompt the user to decide what comes next.
+                            // Both paths lock the achieved floor as the static daily goal
+                            // and clear the completed plan from storage.
+                            VStack(spacing: 8) {
+                                Button {
+                                    completePlanKeepingGoal()
+                                } label: {
+                                    Text("Keep goal at \(plan.minimumFloor) puffs/day")
+                                        .frame(maxWidth: .infinity)
+                                }
+                                .buttonStyle(.borderedProminent)
+
+                                Button {
+                                    completePlanStartNew()
+                                } label: {
+                                    Text("Start a new plan")
+                                        .frame(maxWidth: .infinity)
+                                }
+                                .buttonStyle(.bordered)
+                            }
                         }
                         .padding(.vertical, 12)
                         .padding(.horizontal, 8)

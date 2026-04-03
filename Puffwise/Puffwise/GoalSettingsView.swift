@@ -53,8 +53,8 @@ struct GoalSettingsView: View {
 
     #if DEBUG
     // Number of weeks to shift the plan's startDate backwards when testing.
-    // Not persisted — resets to 0 each launch.
-    @State private var debugWeekOffset: Int = 0
+    // @AppStorage keeps the value alive across sheet dismissals within a session.
+    @AppStorage("debugSimulateWeekOffset") private var debugWeekOffset: Int = 0
     #endif
     @State private var exportErrorMessage = ""
 

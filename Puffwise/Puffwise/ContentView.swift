@@ -290,6 +290,7 @@ struct ContentView: View {
                                 .font(.subheadline)
                                 .foregroundStyle(.secondary)
                                 .multilineTextAlignment(.center)
+                                .fixedSize(horizontal: false, vertical: true)
                         }
                         .padding(.vertical, 12)
                         .padding(.horizontal, 8)

@@ -208,6 +208,12 @@ struct ContentView: View {
         // It replaces the older NavigationView and provides better control over navigation flow.
         // Everything inside NavigationStack can use navigation features like NavigationLink.
         NavigationStack {
+            // GeometryReader captures the available height so the inner VStack can declare
+            // a minHeight equal to the viewport. This keeps content vertically centred
+            // (via the two Spacers) when it is short, and lets the ScrollView scroll
+            // when extra content — like the completion card — makes it taller than the screen.
+            GeometryReader { proxy in
+            ScrollView {
             VStack(spacing: 30) {
                 // App header with icon and title
                 VStack(spacing: 10) {
@@ -371,7 +377,11 @@ struct ContentView: View {
 
                 Spacer()
             }
-            .padding()
+            .frame(maxWidth: .infinity, minHeight: proxy.size.height)
+            .padding(.horizontal)
+            .padding(.bottom)
+            } // ScrollView
+            } // GeometryReader
             // .navigationTitle sets the title in the navigation bar
             // This is a required part of the NavigationStack pattern
             .navigationTitle("Today")

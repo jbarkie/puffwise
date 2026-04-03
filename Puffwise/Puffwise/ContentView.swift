@@ -445,7 +445,7 @@ struct ReductionCurveView: View {
                     AxisGridLine()
                     AxisValueLabel {
                         if let week = value.as(Int.self) {
-                            Text("W\(week)")
+                            Text(week == 0 ? "Start" : "Wk \(week)")
                                 .font(.caption2)
                         }
                     }

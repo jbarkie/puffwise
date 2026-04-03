@@ -166,27 +166,28 @@ struct GoalSettingsView: View {
             // - Accessibility support
             Form {
                 Section {
-                    // Stepper is a control for incrementing/decrementing numeric values.
-                    // Advantages over TextField for numeric input:
-                    // - Prevents invalid input (no need to parse/validate strings)
-                    // - Enforces min/max bounds automatically (in: 1...100)
-                    // - More accessible (clear +/- buttons for VoiceOver)
-                    // - Better UX for small adjustments
-                    //
-                    // The $ prefix creates a binding to dailyPuffGoal, allowing Stepper
-                    // to both read and write the value. Changes are automatically persisted
-                    // via @AppStorage.
-                    Stepper(value: $dailyPuffGoal, in: 1...100) {
+                    // Stepper with an embedded TextField lets the user both type a value
+                    // directly and use the +/- buttons for fine-grained adjustment.
+                    // TextField uses value:format: to bind directly to the Int without
+                    // manual string conversion. The onChange clamps values typed outside
+                    // the allowed range before they are persisted.
+                    Stepper(value: $dailyPuffGoal, in: 1...999) {
                         HStack {
                             Text("Daily Puff Goal")
                                 .font(.body)
                             Spacer()
-                            // Display the current value in a secondary color
-                            Text("\(dailyPuffGoal)")
-                                .foregroundColor(.secondary)
+                            TextField("", value: $dailyPuffGoal, format: .number)
+                                .keyboardType(.numberPad)
+                                .multilineTextAlignment(.trailing)
+                                .frame(width: 60)
+                                .foregroundStyle(.secondary)
                         }
                     }
-                    .onChange(of: dailyPuffGoal) { _, _ in restartPlanWithCurrentGoal() }
+                    .onChange(of: dailyPuffGoal) { _, newValue in
+                        let clamped = min(max(newValue, 1), 999)
+                        if clamped != newValue { dailyPuffGoal = clamped }
+                        restartPlanWithCurrentGoal()
+                    }
                 } header: {
                     // Section header appears above the section in small caps
                     Text("Target")
@@ -231,15 +232,24 @@ struct GoalSettingsView: View {
                         }
                         .onChange(of: weeklyReductionPercent) { _, _ in updateStoredPlan() }
 
-                        Stepper(value: $minimumFloor, in: 0...50) {
+                        Stepper(value: $minimumFloor, in: 0...999) {
                             HStack {
                                 Text("Lowest Daily Goal")
                                 Spacer()
-                                Text("\(minimumFloor) puffs/day")
+                                TextField("", value: $minimumFloor, format: .number)
+                                    .keyboardType(.numberPad)
+                                    .multilineTextAlignment(.trailing)
+                                    .frame(width: 60)
+                                    .foregroundStyle(.secondary)
+                                Text("puffs/day")
                                     .foregroundStyle(.secondary)
                             }
                         }
-                        .onChange(of: minimumFloor) { _, _ in updateStoredPlan() }
+                        .onChange(of: minimumFloor) { _, newValue in
+                            let clamped = min(max(newValue, 0), 999)
+                            if clamped != newValue { minimumFloor = clamped }
+                            updateStoredPlan()
+                        }
 
                         // Status row
                         if let plan = currentReductionPlan {

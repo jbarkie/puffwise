@@ -117,7 +117,7 @@ Use this concise format for PR descriptions:
 - Home screen widget (circular progress ring, count vs. goal, App Group data sharing)
 - Reduction Goal Mode (compounding weekly goal reduction, dynamic daily allowance, trajectory chart)
 
-**Testing:** 143 tests covering models, grouping logic, goal settings, edit/delete, statistics, streaks, undo/trash, CSV export, notifications, widget, and reduction plan.
+**Testing:** 144 tests covering models, grouping logic, goal settings, edit/delete, statistics, streaks, undo/trash, CSV export, notifications, widget, and reduction plan.
 
 ### Project Structure
 
@@ -143,7 +143,7 @@ Puffwise/
 │   ├── Assets.xcassets/        # App icons and colors
 │   └── Preview Content/        # SwiftUI preview assets
 └── PuffwiseTests/
-    └── PuffwiseTests.swift  # Comprehensive test suite (143 tests)
+    └── PuffwiseTests.swift  # Comprehensive test suite (144 tests)
 ```
 
 ### Build Commands

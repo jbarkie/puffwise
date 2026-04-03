@@ -2784,10 +2784,11 @@ struct ReductionPlanTests {
             weeklyReductionPercent: 0,
             minimumFloor: 1
         )
-        // weeklyBudget = 20 * 7 = 140. With 100 puffs logged, remaining = 40.
-        // raw = ceil(40 / daysLeft) which is well below the 20 cap for any daysLeft >= 2.
+        // weeklyBudget = 20 * 7 = 140. With 125 puffs logged, remaining = 15.
+        // raw = ceil(15 / daysLeft) which is at most 15 (when daysLeft = 1), always
+        // below the 20 cap regardless of which day of the week the test runs on.
         let goalWithNone = plan.effectiveDailyGoal(puffsThisWeek: 0)
-        let goalWithHeavyUse = plan.effectiveDailyGoal(puffsThisWeek: 100)
+        let goalWithHeavyUse = plan.effectiveDailyGoal(puffsThisWeek: 125)
         #expect(goalWithHeavyUse < goalWithNone)
     }
 

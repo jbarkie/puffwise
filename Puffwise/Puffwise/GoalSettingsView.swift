@@ -50,6 +50,12 @@ struct GoalSettingsView: View {
     // State for CSV export error handling.
     // When file writing fails, we show an alert instead of silently failing.
     @State private var showingExportError = false
+
+    #if DEBUG
+    // Number of weeks to shift the plan's startDate backwards when testing.
+    // Not persisted — resets to 0 each launch.
+    @State private var debugWeekOffset: Int = 0
+    #endif
     @State private var exportErrorMessage = ""
 
     // State for notification permission denied alert.
@@ -286,6 +292,57 @@ struct GoalSettingsView: View {
                         Text("Automatically reduce your daily goal each week using a compounding percentage.")
                     }
                 }
+
+                // Developer section — stripped from release builds automatically.
+                // Backdates the plan's startDate so the app behaves as if N weeks
+                // have elapsed, letting you walk through the full reduction trajectory
+                // and test the completion state without waiting in real time.
+                #if DEBUG
+                Section {
+                    Stepper(value: $debugWeekOffset, in: 0...30) {
+                        HStack {
+                            Text("Simulate week offset")
+                            Spacer()
+                            Text(debugWeekOffset == 0 ? "Off" : "+\(debugWeekOffset) wks")
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                    Button("Apply to plan") {
+                        guard let existing = currentReductionPlan,
+                              let backdated = Calendar.current.date(
+                                  byAdding: .weekOfYear,
+                                  value: -debugWeekOffset,
+                                  to: Date()
+                              ),
+                              let encoded = try? JSONEncoder().encode(ReductionPlan(
+                                  startDate: backdated,
+                                  startingGoal: existing.startingGoal,
+                                  weeklyReductionPercent: existing.weeklyReductionPercent,
+                                  minimumFloor: existing.minimumFloor
+                              ))
+                        else { return }
+                        reductionPlanData = encoded
+                    }
+                    .disabled(currentReductionPlan == nil || debugWeekOffset == 0)
+                    Button("Reset plan to today", role: .destructive) {
+                        guard let existing = currentReductionPlan,
+                              let encoded = try? JSONEncoder().encode(ReductionPlan(
+                                  startDate: Date(),
+                                  startingGoal: existing.startingGoal,
+                                  weeklyReductionPercent: existing.weeklyReductionPercent,
+                                  minimumFloor: existing.minimumFloor
+                              ))
+                        else { return }
+                        reductionPlanData = encoded
+                        debugWeekOffset = 0
+                    }
+                    .disabled(currentReductionPlan == nil)
+                } header: {
+                    Text("Developer")
+                } footer: {
+                    Text("Debug only — not included in release builds. Shifts the plan start date backwards to simulate time passing.")
+                }
+                #endif
 
                 // Reminders section
                 // Toggle is a SwiftUI control for boolean on/off states.

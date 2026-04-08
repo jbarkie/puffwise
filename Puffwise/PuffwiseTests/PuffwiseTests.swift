@@ -3025,6 +3025,85 @@ struct ReductionPlanTests {
         #expect(abs(decoded.startDate.timeIntervalSince(original.startDate)) < 1)
     }
 
+    // MARK: - isPausedThisWeek
+
+    /// Week 0 (plan started this week) is never paused — there is no prior week to evaluate.
+    @Test func isPausedReturnsFalseInWeekZero() async throws {
+        let plan = ReductionPlan(
+            startDate: Date(),
+            startingGoal: 20, weeklyReductionPercent: 10, minimumFloor: 5
+        )
+        // Even with a very high puff count, week 0 has no prior week to compare against.
+        #expect(plan.isPausedThisWeek(puffsLastWeek: 9999) == false)
+    }
+
+    /// User met last week's goal exactly — plan should not pause.
+    @Test func isPausedReturnsFalseWhenLastWeekGoalMet() async throws {
+        // Plan started last week → weeksElapsed() == 1
+        // prevTarget == weeklyTarget(offset: 0) == 20; weekly budget = 140
+        let oneWeekAgo = Calendar.current.date(byAdding: .weekOfYear, value: -1, to: Date())!
+        let plan = ReductionPlan(
+            startDate: oneWeekAgo,
+            startingGoal: 20, weeklyReductionPercent: 10, minimumFloor: 5
+        )
+        // Exactly 140 puffs = weekly budget met, not exceeded → not paused
+        #expect(plan.isPausedThisWeek(puffsLastWeek: 140) == false)
+    }
+
+    /// User exceeded last week's goal by one puff — plan should pause.
+    @Test func isPausedReturnsTrueWhenLastWeekGoalMissed() async throws {
+        let oneWeekAgo = Calendar.current.date(byAdding: .weekOfYear, value: -1, to: Date())!
+        let plan = ReductionPlan(
+            startDate: oneWeekAgo,
+            startingGoal: 20, weeklyReductionPercent: 10, minimumFloor: 5
+        )
+        // 141 > 140 → paused
+        #expect(plan.isPausedThisWeek(puffsLastWeek: 141) == true)
+    }
+
+    // MARK: - pausedWeekTarget
+
+    /// Paused target uses the previous week's scheduled daily goal, not the current one.
+    @Test func pausedWeekTargetReturnsPreviousWeekTarget() async throws {
+        let oneWeekAgo = Calendar.current.date(byAdding: .weekOfYear, value: -1, to: Date())!
+        let plan = ReductionPlan(
+            startDate: oneWeekAgo,
+            startingGoal: 20, weeklyReductionPercent: 10, minimumFloor: 5
+        )
+        // elapsed == 1 → prev offset == 0 → weeklyTarget(offset: 0) == 20
+        #expect(plan.pausedWeekTarget(puffsLastWeek: 999) == 20)
+    }
+
+    // MARK: - effectiveDailyGoal with pause
+
+    /// When paused, effectiveDailyGoal uses the previous (higher) week's budget.
+    @Test func effectiveDailyGoalUsesPrevTargetWhenPaused() async throws {
+        let oneWeekAgo = Calendar.current.date(byAdding: .weekOfYear, value: -1, to: Date())!
+        let plan = ReductionPlan(
+            startDate: oneWeekAgo,
+            startingGoal: 20, weeklyReductionPercent: 10, minimumFloor: 5
+        )
+        // elapsed == 1; currentWeekTarget == 18; pausedWeekTarget == 20
+        // Not paused: daily allowance based on 18×7=126 budget
+        // Paused:     daily allowance based on 20×7=140 budget
+        let notPaused = plan.effectiveDailyGoal(puffsThisWeek: 0, puffsLastWeek: 0)
+        let paused    = plan.effectiveDailyGoal(puffsThisWeek: 0, puffsLastWeek: 141)
+        #expect(notPaused == 18)
+        #expect(paused == 20)
+        #expect(paused > notPaused)
+    }
+
+    /// Omitting puffsLastWeek (old call sites) defaults to not-paused behaviour.
+    @Test func effectiveDailyGoalDefaultsToNotPaused() async throws {
+        let oneWeekAgo = Calendar.current.date(byAdding: .weekOfYear, value: -1, to: Date())!
+        let plan = ReductionPlan(
+            startDate: oneWeekAgo,
+            startingGoal: 20, weeklyReductionPercent: 10, minimumFloor: 5
+        )
+        // Old call site — no puffsLastWeek argument → not paused → currentWeekTarget == 18
+        #expect(plan.effectiveDailyGoal(puffsThisWeek: 0) == 18)
+    }
+
     // MARK: - Streak integration
 
     /// Verifies that calculateStreak correctly uses a custom dailyGoal parameter,

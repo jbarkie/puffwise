@@ -110,6 +110,13 @@ struct GoalSettingsView: View {
         return try? JSONDecoder().decode(ReductionPlan.self, from: reductionPlanData)
     }
 
+    /// Puffs logged during the previous calendar week.
+    /// Used alongside currentReductionPlan to determine whether the plan is paused.
+    private var puffsLastWeek: [Puff] {
+        guard let interval = currentReductionPlan?.previousWeekInterval() else { return [] }
+        return puffs.filter { interval.contains($0.timestamp) }
+    }
+
     /// Restarts the plan from today using the current daily goal as the new starting point.
     /// Called when the user changes the daily goal while reduction mode is already on,
     /// so the trajectory reflects the revised baseline rather than a stale snapshot.
@@ -284,14 +291,27 @@ struct GoalSettingsView: View {
                                 .padding(.vertical, 2)
                             } else {
                                 let weekNum = plan.weeksElapsed() + 1
-                                let nextDate = plan.nextReductionDate()
+                                let paused = plan.isPausedThisWeek(puffsLastWeek: puffsLastWeek.count)
                                 VStack(alignment: .leading, spacing: 2) {
-                                    Text("Week \(weekNum) — \(plan.currentWeekTarget()) puffs/day target")
-                                        .font(.subheadline)
-                                        .foregroundStyle(.primary)
-                                    Text("Next reduction: \(nextDate.formatted(date: .abbreviated, time: .omitted))")
-                                        .font(.caption)
-                                        .foregroundStyle(.secondary)
+                                    if paused {
+                                        HStack(spacing: 6) {
+                                            Image(systemName: "pause.circle.fill")
+                                                .foregroundStyle(.orange)
+                                            Text("Week \(weekNum) paused — meet this week's goal to resume")
+                                                .font(.subheadline)
+                                                .foregroundStyle(.primary)
+                                        }
+                                        Text("Holding at \(plan.pausedWeekTarget(puffsLastWeek: puffsLastWeek.count)) puffs/day")
+                                            .font(.caption)
+                                            .foregroundStyle(.secondary)
+                                    } else {
+                                        Text("Week \(weekNum) — \(plan.currentWeekTarget()) puffs/day target")
+                                            .font(.subheadline)
+                                            .foregroundStyle(.primary)
+                                        Text("Next reduction: \(plan.nextReductionDate().formatted(date: .abbreviated, time: .omitted))")
+                                            .font(.caption)
+                                            .foregroundStyle(.secondary)
+                                    }
                                 }
                                 .padding(.vertical, 2)
                             }

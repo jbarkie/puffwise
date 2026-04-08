@@ -61,15 +61,23 @@ struct ReductionPlan: Codable {
     /// does not inflate today's allowance above the intended daily limit — unused
     /// budget is discarded rather than rolled forward.
     ///
-    /// Always returns at least 1.
+    /// When the plan is paused (user exceeded last week's target), the weekly budget
+    /// is based on the previous week's target rather than the scheduled reduction,
+    /// so no further tightening is applied until the user gets back on track.
     ///
-    /// - Parameter puffsThisWeek: Total puffs logged since the start of the current week.
-    func effectiveDailyGoal(puffsThisWeek: Int) -> Int {
-        let weeklyBudget = currentWeekTarget() * 7
+    /// - Parameters:
+    ///   - puffsThisWeek: Total puffs logged since the start of the current week.
+    ///   - puffsLastWeek: Total puffs logged during the previous calendar week.
+    ///                    Defaults to 0 (never paused) for backward compatibility.
+    func effectiveDailyGoal(puffsThisWeek: Int, puffsLastWeek: Int = 0) -> Int {
+        let dailyTarget = isPausedThisWeek(puffsLastWeek: puffsLastWeek)
+            ? pausedWeekTarget(puffsLastWeek: puffsLastWeek)
+            : currentWeekTarget()
+        let weeklyBudget = dailyTarget * 7
         let remaining = max(0, weeklyBudget - puffsThisWeek)
         let daysLeft = daysRemainingInCurrentWeek()
         let raw = Int(ceil(Double(remaining) / Double(daysLeft)))
-        return max(0, min(raw, currentWeekTarget()))
+        return max(0, min(raw, dailyTarget))
     }
 
     // MARK: - Date Helpers
@@ -101,6 +109,38 @@ struct ReductionPlan: Codable {
     func nextReductionDate() -> Date {
         Calendar.current.dateInterval(of: .weekOfYear, for: Date())?.end
             ?? Date().addingTimeInterval(7 * 24 * 3600)
+    }
+
+    /// The date interval for the calendar week immediately before the current one.
+    func previousWeekInterval() -> DateInterval? {
+        let cal = Calendar.current
+        guard let currentStart = cal.dateInterval(of: .weekOfYear, for: Date())?.start,
+              let prevWeekDate = cal.date(byAdding: .weekOfYear, value: -1, to: currentStart)
+        else { return nil }
+        return cal.dateInterval(of: .weekOfYear, for: prevWeekDate)
+    }
+
+    /// True when the plan should hold this week's target at the previous week's level.
+    ///
+    /// A pause occurs when at least one full week has elapsed AND the user's total
+    /// puffs for the previous calendar week exceeded that week's daily target × 7.
+    /// Week 0 is never paused — there is no prior week to evaluate.
+    ///
+    /// - Parameter puffsLastWeek: Total puffs logged during the previous calendar week.
+    func isPausedThisWeek(puffsLastWeek: Int) -> Bool {
+        let elapsed = weeksElapsed()
+        guard elapsed > 0 else { return false }
+        let prevTarget = weeklyTarget(forWeekOffset: elapsed - 1)
+        return puffsLastWeek > prevTarget * 7
+    }
+
+    /// The daily target to hold when the plan is paused (previous week's scheduled target).
+    ///
+    /// - Parameter puffsLastWeek: Total puffs logged during the previous calendar week.
+    func pausedWeekTarget(puffsLastWeek: Int) -> Int {
+        let elapsed = weeksElapsed()
+        guard elapsed > 0 else { return currentWeekTarget() }
+        return weeklyTarget(forWeekOffset: elapsed - 1)
     }
 
     // MARK: - Plan State

@@ -74,6 +74,13 @@ struct ContentView: View {
         return puffs.filter { weekInterval.contains($0.timestamp) }
     }
 
+    // Puffs logged during the previous calendar week (locale-aware).
+    // Used to determine whether the reduction plan should be paused this week.
+    private var puffsLastWeek: [Puff] {
+        guard let interval = currentReductionPlan?.previousWeekInterval() else { return [] }
+        return puffs.filter { interval.contains($0.timestamp) }
+    }
+
     // Decoded reduction plan, or nil when reduction mode is off or plan data is absent.
     private var currentReductionPlan: ReductionPlan? {
         guard reductionModeEnabled, !reductionPlanData.isEmpty else { return nil }
@@ -85,7 +92,7 @@ struct ContentView: View {
     // otherwise it is the user's static dailyPuffGoal setting.
     private var activeGoal: Int {
         guard let plan = currentReductionPlan else { return dailyPuffGoal }
-        return plan.effectiveDailyGoal(puffsThisWeek: puffsThisWeek.count)
+        return plan.effectiveDailyGoal(puffsThisWeek: puffsThisWeek.count, puffsLastWeek: puffsLastWeek.count)
     }
 
     // Trajectory data for the reduction curve chart. Empty when reduction mode is off.
@@ -247,12 +254,18 @@ struct ContentView: View {
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
 
-                    // Reduction mode status — week number and weekly target
+                    // Reduction mode status — week number, weekly target, and pause state
                     if let plan = currentReductionPlan {
                         let weekNum = plan.weeksElapsed() + 1
-                        Text("Reduction Plan Week \(weekNum) — \(plan.currentWeekTarget()) puffs/day target")
-                            .font(.caption)
-                            .foregroundStyle(.blue.opacity(0.8))
+                        if plan.isPausedThisWeek(puffsLastWeek: puffsLastWeek.count) {
+                            Text("Reduction Plan — Week \(weekNum) paused (missed last week's goal)")
+                                .font(.caption)
+                                .foregroundStyle(.orange.opacity(0.9))
+                        } else {
+                            Text("Reduction Plan Week \(weekNum) — \(plan.currentWeekTarget()) puffs/day target")
+                                .font(.caption)
+                                .foregroundStyle(.blue.opacity(0.8))
+                        }
                     }
 
                     // Statistics display

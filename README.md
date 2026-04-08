@@ -66,6 +66,7 @@ Puffwise is designed to provide a better user experience than existing habit-tra
   - Configurable weekly reduction rate (1–20%) and minimum floor
   - Trajectory chart on the home screen showing weeks until the floor is reached
   - Weekly target synced to the home screen widget
+  - Pause detection: if last week's puff count exceeded the weekly target, the reduction holds for one more week before advancing
 - **Clean UI**: Minimal, distraction-free interface without ads ✅
 
 ## Technical Stack
@@ -103,7 +104,7 @@ Puffwise/
 ├── PuffwiseWidget/
 │   └── PuffwiseWidget.swift    # Home screen widget (count + goal progress ring)
 └── PuffwiseTests/
-    └── PuffwiseTests.swift  # Comprehensive test suite (144 tests)
+    └── PuffwiseTests.swift  # Comprehensive test suite (151 tests)
 ```
 
 ## Getting Started

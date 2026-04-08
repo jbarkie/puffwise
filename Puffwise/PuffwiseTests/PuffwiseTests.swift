@@ -2792,9 +2792,9 @@ struct ReductionPlanTests {
         #expect(goalWithHeavyUse < goalWithNone)
     }
 
-    /// Effective daily goal never goes negative, even if the weekly budget is exhausted.
-    /// It can reach 0 when the plan's floor is 0 (user is working toward quitting).
-    @Test func effectiveDailyGoalNeverGoesNegative() async throws {
+    /// When the weekly budget is exhausted, the effective daily goal returns the daily
+    /// target rather than 0 — the goal hasn't changed, the user is just over budget.
+    @Test func effectiveDailyGoalReturnsDailyTargetWhenBudgetExhausted() async throws {
         let plan = ReductionPlan(
             startDate: date(year: 2026, month: 1, day: 1),
             startingGoal: 5,
@@ -2803,7 +2803,7 @@ struct ReductionPlanTests {
         )
         // 5 × 7 = 35 weekly budget; consuming 200 far exceeds it
         let result = plan.effectiveDailyGoal(puffsThisWeek: 200)
-        #expect(result >= 0)
+        #expect(result == 5)
     }
 
     /// When the floor is 0, the effective daily goal can reach 0 once the plan

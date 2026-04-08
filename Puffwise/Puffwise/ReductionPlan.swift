@@ -74,7 +74,11 @@ struct ReductionPlan: Codable {
             ? pausedWeekTarget(puffsLastWeek: puffsLastWeek)
             : currentWeekTarget()
         let weeklyBudget = dailyTarget * 7
-        let remaining = max(0, weeklyBudget - puffsThisWeek)
+        // When the weekly budget is already exhausted, the daily target hasn't changed —
+        // the user is simply over budget. Return dailyTarget so the display remains
+        // meaningful rather than showing "of 0 puffs".
+        guard puffsThisWeek < weeklyBudget else { return dailyTarget }
+        let remaining = weeklyBudget - puffsThisWeek
         let daysLeft = daysRemainingInCurrentWeek()
         let raw = Int(ceil(Double(remaining) / Double(daysLeft)))
         return max(0, min(raw, dailyTarget))

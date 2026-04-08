@@ -123,6 +123,11 @@ struct GoalSettingsView: View {
               ))
         else { return }
         reductionPlanData = encoded
+        #if DEBUG
+        // startDate is always Date() here, so any applied offset no longer reflects
+        // the stored plan — reset it to keep the debug controls in sync.
+        debugWeekOffset = 0
+        #endif
     }
 
     /// Saves an updated plan to UserDefaults, preserving the original start date and goal.
@@ -220,6 +225,11 @@ struct GoalSettingsView: View {
                                     reductionPlanData = encoded
                                 }
                                 reductionModeEnabled = true
+                                #if DEBUG
+                                // A fresh plan always starts from today, so any previously
+                                // applied week offset is stale — reset it to avoid confusion.
+                                debugWeekOffset = 0
+                                #endif
                             } else {
                                 reductionModeEnabled = false
                                 // Current goal is kept as-is — user decides whether to adjust manually.

@@ -117,7 +117,7 @@ Use this concise format for PR descriptions:
 - Home screen widget (circular progress ring, count vs. goal, App Group data sharing)
 - Reduction Goal Mode (compounding weekly goal reduction, dynamic daily allowance, trajectory chart, pause detection when weekly goal is missed)
 
-**Testing:** 150 tests covering models, grouping logic, goal settings, edit/delete, statistics, streaks, undo/trash, CSV export, notifications, widget, and reduction plan.
+**Testing:** 151 tests covering models, grouping logic, goal settings, edit/delete, statistics, streaks, undo/trash, CSV export, notifications, widget, and reduction plan.
 
 ### Project Structure
 

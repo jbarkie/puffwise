@@ -104,7 +104,7 @@ Puffwise/
 ├── PuffwiseWidget/
 │   └── PuffwiseWidget.swift    # Home screen widget (count + goal progress ring)
 └── PuffwiseTests/
-    └── PuffwiseTests.swift  # Comprehensive test suite (150 tests)
+    └── PuffwiseTests.swift  # Comprehensive test suite (151 tests)
 ```
 
 ## Getting Started

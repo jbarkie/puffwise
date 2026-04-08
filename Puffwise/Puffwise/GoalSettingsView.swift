@@ -239,16 +239,20 @@ struct GoalSettingsView: View {
                         .onChange(of: weeklyReductionPercent) { _, _ in updateStoredPlan() }
 
                         Stepper(value: $minimumFloor, in: 0...999) {
-                            HStack {
+                            // VStack separates the label from the value+unit so both
+                            // fit comfortably without wrapping on any iPhone screen size.
+                            VStack(alignment: .leading, spacing: 2) {
                                 Text("Lowest Daily Goal")
-                                Spacer()
-                                TextField("", value: $minimumFloor, format: .number)
-                                    .keyboardType(.numberPad)
-                                    .multilineTextAlignment(.trailing)
-                                    .frame(width: 60)
-                                    .foregroundStyle(.secondary)
-                                Text("puffs/day")
-                                    .foregroundStyle(.secondary)
+                                HStack(spacing: 4) {
+                                    TextField("", value: $minimumFloor, format: .number)
+                                        .keyboardType(.numberPad)
+                                        .multilineTextAlignment(.trailing)
+                                        .fixedSize()
+                                        .foregroundStyle(.secondary)
+                                    Text("puffs/day")
+                                        .foregroundStyle(.secondary)
+                                        .font(.subheadline)
+                                }
                             }
                         }
                         .onChange(of: minimumFloor) { _, newValue in

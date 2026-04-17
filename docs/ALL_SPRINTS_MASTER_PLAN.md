@@ -1,7 +1,7 @@
 
 # All Sprints Master Plan
 
-Last Updated: 2026-03-29
+Last Updated: 2026-04-16
 Audience: Product Owner and Claude Code development team
 Purpose: Single source of truth for sprint history, current state, and future roadmap
 
@@ -67,23 +67,33 @@ The following features were built before the sprint framework was established:
 
 ## Next Sprint Candidates
 
-### F1. HealthKit Integration (~8 hrs) Priority 1
+### F3. Reduction Goal Mode — COMPLETED Sprint 2
+
+### F6. Onboarding Flow (~5 hrs) Priority 1
 
 - **Phase**: Core App
 - **Platform**: iOS
-- Log puff events to HealthKit as mindful minutes or custom category samples
-- Enable Health app correlation with other wellness data
-- Requires HealthKit entitlement and privacy description
+- First-launch walkthrough setting initial goal and notification preference
+- Explain puff counting concept and app philosophy
+- Skip option for returning users after reinstall
 
-### F2. iCloud Sync (~10 hrs) Priority 2
+### UI. UI and Design Refresh (~6 hrs) Priority 2
+
+- **Phase**: Core App
+- **Platform**: iOS
+- Consistent color system and typography across all views
+- Improved spacing, visual hierarchy, and layout polish
+- Transitions and animations
+- Better empty states
+- Accessibility improvements
+
+### F2. iCloud Sync (~10 hrs) Priority 3
 
 - **Phase**: Core App
 - **Platform**: iOS
 - Sync puff data across user's devices via CloudKit
 - Replace or supplement UserDefaults with CloudKit private database
 - Requires iCloud entitlement and conflict resolution strategy
-
-### F3. Reduction Goal Mode — COMPLETED Sprint 2
 
 ### F4. Apple Watch Companion (~12 hrs) Priority 4
 
@@ -93,23 +103,7 @@ The following features were built before the sprint framework was established:
 - Complication showing today's count and goal progress
 - WatchConnectivity framework for data sync
 
-### F5. Shareable Progress Cards (~4 hrs) Priority 5
-
-- **Phase**: Core App
-- **Platform**: iOS
-- Generate share-ready image cards (e.g., "14 days meeting my goal!")
-- SwiftUI canvas rendering exported via UIGraphicsImageRenderer
-- Share sheet integration
-
-### F6. Onboarding Flow (~5 hrs) Priority 6
-
-- **Phase**: Core App
-- **Platform**: iOS
-- First-launch walkthrough setting initial goal and notification preference
-- Explain puff counting concept and app philosophy
-- Skip option for returning users after reinstall
-
-### F7. App Store Submission (~6 hrs) Priority 7
+### F7. App Store Submission (~6 hrs) Terminal Sprint
 
 - **Phase**: Distribution
 - **Platform**: iOS
@@ -129,5 +123,14 @@ The following features were built before the sprint framework was established:
 ### H2. Premium / Paywall (~8 hrs) Priority HOLD
 
 - **Reason**: App is intentionally ad-free and simple; monetization not a current goal
+
+### H3. Shareable Progress Cards (~4 hrs) Priority HOLD
+
+- **Reason**: Share cards for routine milestones feel low-value; revisit only for high-significance achievements (e.g., user has quit entirely, 30/60/90-day streak)
+- Would require defining achievement thresholds and SwiftUI canvas rendering via UIGraphicsImageRenderer
+
+### H4. HealthKit Integration Priority HOLD
+
+- **Reason**: Explored and ruled out — not sufficiently useful or feasible for this app's scope
 
 ---

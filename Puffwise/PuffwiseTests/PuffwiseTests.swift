@@ -1309,7 +1309,9 @@ struct StreakCalculationTests {
     /// - Backward date walking
     @Test func consecutiveDaysMeetingGoalCreatesStreak() async throws {
         let calendar = Calendar.current
-        let today = Date()
+        // Anchor to midnight so the hour offsets below stay on today's date,
+        // whatever time of day the test runs.
+        let today = calendar.startOfDay(for: Date())
         var puffs: [Puff] = []
 
         // Create 5 consecutive days, each with 5 puffs (goal = 10)
@@ -1372,7 +1374,9 @@ struct StreakCalculationTests {
     /// - System behavior when no goal configured
     @Test func noGoalSetReturnsZeroStreak() async throws {
         let calendar = Calendar.current
-        let today = Date()
+        // Anchor to midnight so the hour offsets below stay on today's date,
+        // whatever time of day the test runs.
+        let today = calendar.startOfDay(for: Date())
 
         // Create 5 puffs
         let puffs = (0..<5).map { hour in
@@ -1485,7 +1489,9 @@ struct StreakCalculationTests {
     /// - Current < stored best
     @Test func bestStreakPreservedWhenCurrentLower() async throws {
         let calendar = Calendar.current
-        let today = Date()
+        // Anchor to midnight so the hour offsets below stay on today's date,
+        // whatever time of day the test runs.
+        let today = calendar.startOfDay(for: Date())
 
         // Only today with 5 puffs (meets goal)
         let puffs = (0..<5).map { hour in
@@ -1506,7 +1512,9 @@ struct StreakCalculationTests {
     /// - Current > stored best
     @Test func bestStreakUpdatedWhenCurrentHigher() async throws {
         let calendar = Calendar.current
-        let today = Date()
+        // Anchor to midnight so the hour offsets below stay on today's date,
+        // whatever time of day the test runs.
+        let today = calendar.startOfDay(for: Date())
         var puffs: [Puff] = []
 
         // Create 7 consecutive days with goal met
@@ -1567,7 +1575,9 @@ struct StreakCalculationTests {
     /// - Computed property hasActiveStreak
     /// - Boolean logic for active streak detection
     @Test func hasActiveStreakReturnsTrueWhenGreaterThanZero() async throws {
-        let today = Date()
+        // Anchor to midnight so the hour offsets below stay on today's date,
+        // whatever time of day the test runs.
+        let today = Calendar.current.startOfDay(for: Date())
         let puffs = (0..<5).map { hour in
             Puff(timestamp: today.addingTimeInterval(Double(hour * 3600)))
         }
@@ -1730,7 +1740,9 @@ struct StreakCalculationTests {
     /// - Being under goal is success
     /// - Better performance than goal requirement
     @Test func beatingGoalCountsAsSuccess() async throws {
-        let today = Date()
+        // Anchor to midnight so the hour offsets below stay on today's date,
+        // whatever time of day the test runs.
+        let today = Calendar.current.startOfDay(for: Date())
 
         // Create 3 puffs (well under goal of 10)
         let puffs = (0..<3).map { hour in
